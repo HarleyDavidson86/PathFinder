@@ -1,26 +1,51 @@
 package de.itwerkstatt.pathfinder.entities;
 
+import java.util.stream.DoubleStream;
+
 /**
  * A line segment defined by two points
+ *
  * @author dsust
  */
 public record Line(Point p1, Point p2) {
 
     /**
-     * Checks if the given value is between the
-     * x-coord value of p1 and p2
+     * Checks if the given value is between the x-coord value of p1 and p2
+     *
      * @param x
-     * @return true, if x is between p1.x and p2.x 
+     * @return true, if x is between p1.x and p2.x
      */
-    boolean isValBetweenSegment(double x) {
-        double maxX = p1.x() > p2.x() ? p1.x() : p2.x();
-        double minX = p1.x() < p2.x() ? p1.x() : p2.x();
-        return x > minX && x < maxX;
+    boolean isValBetweenSegmentX(double x) {
+        double maxX = DoubleStream.of(p1.x(), p2.x()).max().getAsDouble();
+        double minX = DoubleStream.of(p1.x(), p2.x()).min().getAsDouble();
+        return x >= minX && x <= maxX;
     }
 
     /**
-     * Returns the point with the smallest distance between the 
-     * given point and the line segment.
+     * Checks if the given value is between the y-coord value of p1 and p2
+     *
+     * @param y
+     * @return true, if y is between p1.y and p2.y
+     */
+    boolean isValBetweenSegmentY(double y) {
+        double maxY = DoubleStream.of(p1.y(), p2.y()).max().getAsDouble();
+        double minY = DoubleStream.of(p1.y(), p2.y()).min().getAsDouble();
+        return y >= minY && y <= maxY;
+    }
+
+    /**
+     * Checks if the given point is between p1 and p2
+     *
+     * @param p
+     * @return true, if p is between p1 and p2
+     */
+    boolean isPointBetweenSegmentpoints(Point p) {
+        return isValBetweenSegmentX(p.x()) && isValBetweenSegmentY(p.y());
+    }
+
+    /**
+     * Returns the point with the smallest distance between the given point and
+     * the line segment.
      *
      * @param p Starting point
      * @return Point
@@ -54,7 +79,7 @@ public record Line(Point p1, Point p2) {
             System.out.println("Gradient normal : " + m_normal);
             double c_normal = p.y() - (m_normal * p.x());
             System.out.println("Offset normal : " + c_normal);
-
+            System.out.println("Linear equation normal y = " + m_normal + "x + " + c_normal);
             // m x + c = m_normal x + c_normal
             // x = (c_normal - c) / (m - m_normal)
             double x_new = (c_normal - c) / (m - m_normal);
@@ -62,8 +87,8 @@ public record Line(Point p1, Point p2) {
             intersectionPoint = new Point(x_new, y_new);
         }
 
-        // Check whether the point is within the segment
-        if (isValBetweenSegment(intersectionPoint.x())) {
+        System.out.println("Intersection point : " + intersectionPoint);
+        if (isPointBetweenSegmentpoints(intersectionPoint)) {
             return intersectionPoint;
         }
         // Point is not within the segment. 
