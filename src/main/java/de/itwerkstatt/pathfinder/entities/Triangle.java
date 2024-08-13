@@ -26,7 +26,7 @@ public record Triangle(Point p1, Point p2, Point p3) {
      * @return true, if point is located inside the triangle
      */
     public boolean isPointInTriangle(Point p) {
-        System.out.println("Startpunkt: " + p + ", Dreieck: " + this);
+        System.out.println("Point: " + p + ", Triangle: " + this);
 
         // The order of the points is important and must always 
         // have the same direction.

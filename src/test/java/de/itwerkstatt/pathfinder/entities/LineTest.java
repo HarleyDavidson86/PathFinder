@@ -168,4 +168,74 @@ public class LineTest {
         assertEquals(new Point(4, 8), line.getNearestPointToLine(new Point(4, 8)));
     }
 
+    @Test
+    public void testOrientation() {
+        Line l = new Line(new Point(1,1), new Point(10,1));
+        //Case 1
+        //(1/1)     X(5/5)             (10/1)
+        // o-----------------------------o
+        assertEquals(2, l.orientation(new Point(5,5)));
+        
+        //Case 2
+        //(1/1)                        (10/1)
+        // o-----------------------------o
+        //          X(5/-5)
+        assertEquals(1, l.orientation(new Point(5,-5)));
+        
+        //Case 3
+        //(1/1)                        (10/1)
+        // o--------X(5/1)---------------o
+        assertEquals(0, l.orientation(new Point(5,1)));
+    }
+    
+    @Test
+    public void testDoIntersect() {
+        Line l = new Line(new Point(1,1), new Point(10,1));
+        
+        //Case 1
+        //(1/1)                        (10/1)
+        // o-----------------------------o
+        // X-----------------------------X
+        //(1/0)                        (10/0)
+        Line other = new Line(new Point(1,0), new Point(10,0));
+        assertFalse(l.doIntersect(other));
+        assertFalse(other.doIntersect(l));
+        
+        //Case 2
+        //                  X (8/10)
+        //                 /
+        //                /
+        //(1/1)          X (6/5)       (10/1)
+        // o-----------------------------o
+        other = new Line(new Point(6,5), new Point(8,10));
+        assertFalse(l.doIntersect(other));
+        assertFalse(other.doIntersect(l));
+        
+        //Case 3
+        //                X (6/5)
+        //(1/1)          /             (10/1)
+        // o-----------------------------o
+        //             /
+        //            X (4/-1)
+        other = new Line(new Point(4,-1), new Point(6,5));
+        assertTrue(l.doIntersect(other));
+        assertTrue(other.doIntersect(l));
+        
+        //Case 4
+        //(1/1)                        (10/1)
+        // o---------X------X------------o
+        //         (6/1)  (4/1)
+        other = new Line(new Point(4,1), new Point(6,1));
+        assertFalse(l.doIntersect(other));
+        assertFalse(other.doIntersect(l));
+        
+        //Case 5
+        //(1/1)                        (10/1)
+        // o---------X-------------------o--------X
+        //         (6/1)                        (14/1)
+        other = new Line(new Point(6,1), new Point(14,1));
+        assertFalse(l.doIntersect(other));
+        assertFalse(other.doIntersect(l));
+    }
+
 }

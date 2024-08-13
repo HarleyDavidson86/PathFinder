@@ -18,6 +18,11 @@ public record Area(Point... points) {
         this.points = points;
     }
     
+    /**
+     * Calculates the nearest point to the edge of the area
+     * @param p
+     * @return 
+     */
     public Point calculateNearestPointToArea(Point p) {
         //Find Point with minimal distance
         double minDistance = Double.MAX_VALUE;

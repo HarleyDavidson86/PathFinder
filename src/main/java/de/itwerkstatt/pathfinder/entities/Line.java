@@ -100,4 +100,39 @@ public record Line(Point p1, Point p2) {
         }
         return p1;
     }
+    
+    /**
+     * Calculates the orientation of the three points
+     * line.p1, line.p2, p
+     * @param p
+     * @return 0 = collinear, 1 = clock wise, 2 = counter clock wise
+     */
+    int orientation(Point p) {
+        var result = (p2.y() - p1.y()) * (p.x() - p2.x()) - (p2.x() - p1.x()) * (p.y() - p2.y());
+        if (result == 0) {
+            return 0;
+        }
+        return (result > 0) ? 1 : 2;
+    }
+    
+    /**
+     * Checks if the line intersects with the other
+     * @param other
+     * @return true if line intersects
+     */
+    boolean doIntersect(Line other) {
+        int o1 = orientation(other.p1);
+        int o2 = orientation(other.p2);
+        int o3 = other.orientation(p1);
+        int o4 = other.orientation(p2);
+
+        if (o1 != o2 && o3 != o4) return true;
+        //Line is on other line
+        if (o1 == 0 && o2 == 0 && o3 == 0 && o4 == 0) return false;
+
+        if (o1 == 0 && isPointBetweenSegmentpoints(other.p1)) return true;
+        if (o2 == 0 && isPointBetweenSegmentpoints(other.p2)) return true;
+        if (o3 == 0 && other.isPointBetweenSegmentpoints(p1)) return true;
+        return o4 == 0 && other.isPointBetweenSegmentpoints(p2);
+    }
 }
