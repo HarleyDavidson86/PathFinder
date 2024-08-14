@@ -49,4 +49,31 @@ public record Area(Point... points) {
         }
         return nearestPointCandid2;
     }
+    
+    /**
+     * Calculates the nearest point to the edge of the area
+     * in direction to the destinationPoint
+     * @param s
+     * @param dest
+     * @return 
+     */
+    public Point calculateDirectionalNearestPointToArea(Point s, Point dest) {
+        //Find line which is being crossed by path from s to dest
+        Line l = new Line(s, dest);
+        for (int i = 0; i < points.length; i++) {
+            Point p1 = points[i];
+            Point p2 = points[0];
+            if ((i+1) < points.length) {
+                p2 = points[i+1];
+            }
+            Line tmpLine = new Line(p1,p2);
+            System.out.println(l+" > "+tmpLine+" : "+l.doIntersect(tmpLine));
+            //Lines intersect
+            if (l.doIntersect(tmpLine)) {
+                //Find shortest point on that edge of the area
+                return tmpLine.getNearestPointToLine(s);
+            }
+        }
+        return null;
+    }
 }
