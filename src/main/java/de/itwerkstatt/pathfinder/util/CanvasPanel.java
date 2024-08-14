@@ -11,6 +11,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.stream.Stream;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -95,7 +96,7 @@ public class CanvasPanel extends JPanel implements ItemListener {
             }
             //Points of area
             if (Filter.POINTS.isVisible()) {
-                for (Point point : area.points()) {
+                for (Point point : Stream.of(triangles).flatMap(t -> Stream.of(t.p1(), t.p2(), t.p3())).toList()) {
                     drawPoint(g2d, "", (int) point.x(), (int) point.y());
                 }
             }

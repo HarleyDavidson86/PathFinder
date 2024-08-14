@@ -52,6 +52,12 @@ public class TestGUI {
                 }
             }
         });
+        
+        try {
+            canvas.setPath(p.findPath());
+        } catch (IllegalArgumentException ignore) {
+            //No start and endpoint available yet
+        }
 
         frame.add(canvas, BorderLayout.CENTER);
         frame.add(setupFilterCheckboxes(), BorderLayout.EAST);
