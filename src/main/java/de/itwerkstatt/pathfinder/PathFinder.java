@@ -1,6 +1,7 @@
 package de.itwerkstatt.pathfinder;
 
 import de.itwerkstatt.pathfinder.entities.Area;
+import de.itwerkstatt.pathfinder.entities.Line;
 import de.itwerkstatt.pathfinder.entities.Point;
 import de.itwerkstatt.pathfinder.entities.Triangle;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ public class PathFinder {
 
     private final Area area;
     private Triangle[] areaTriangles;
+    private Line[] areaLines;
 
     private Point startPoint;
     private Point endPoint;
@@ -36,6 +38,7 @@ public class PathFinder {
     public PathFinder(Area a) {
         this.area = a;
         calculateTrianglesOfArea();
+        calculateAreaLines();
     }
 
     /**
@@ -54,12 +57,8 @@ public class PathFinder {
         }
     }
 
-    public boolean isStartpointInArea() {
-        return Stream.of(areaTriangles).anyMatch(t -> t.isPointInTriangle(startPoint));
-    }
-
-    public boolean isEndpointInArea() {
-        return Stream.of(areaTriangles).anyMatch(t -> t.isPointInTriangle(endPoint));
+    public boolean isPointInArea(Point p) {
+        return Stream.of(areaTriangles).anyMatch(t -> t.isPointInTriangle(p));
     }
 
     /**
@@ -79,16 +78,23 @@ public class PathFinder {
         }
         List<Point> result = new ArrayList<>();
         //Check if startPoint is in area
-        if (isStartpointInArea()) {
+        if (isPointInArea(startPoint)) {
             result.add(startPoint);
         } else {
-            result.add(area.calculateNearestPointToArea(startPoint));
+            //Alternatively: NearestPointToArea regardless of direction?
+            startPoint = area.calculateDirectionalNearestPointToArea(startPoint, endPoint);
+            result.add(startPoint);
         }
-        if (isEndpointInArea()) {
-            result.add(endPoint);
-        } else {
-            result.add(area.calculateNearestPointToArea(endPoint));
+        if (!isPointInArea(endPoint)) {
+            //Alternatively: NearestPointToArea regardless of direction?
+            endPoint = area.calculateDirectionalNearestPointToArea(endPoint, startPoint);
         }
+        //We now have start and end point inside of area.
+        //Calculate the path
+        
+        
+        //Add endpoint
+        result.add(endPoint);
         return result.toArray(Point[]::new);
     }
 
@@ -102,6 +108,21 @@ public class PathFinder {
             Point p2 = area.points()[i - 1];
             Point p3 = area.points()[i];
             areaTriangles[i - 2] = new Triangle(p1, p2, p3);
+        }
+    }
+    
+    /**
+     * Calculates all edge-lines of the area by the points.
+     */
+    private void calculateAreaLines() {
+        areaLines = new Line[area.points().length];
+        for (int i = 0; i < area.points().length; i++) {
+            Point p1 = area.points()[i];
+            Point p2 = area.points()[0];
+            if ((i+1) < area.points().length) {
+                p2 = area.points()[i+1];
+            }
+            areaLines[i] = new Line(p1,p2);
         }
     }
 
@@ -118,7 +139,7 @@ public class PathFinder {
      *
      * @param areaTriangles
      */
-    public void setAreaTriangles(Triangle[] areaTriangles) {
+    public void setAreaTriangles(Triangle... areaTriangles) {
         this.areaTriangles = areaTriangles;
     }
 }
