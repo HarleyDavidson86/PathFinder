@@ -89,10 +89,13 @@ public class PathFinder {
             //Alternatively: NearestPointToArea regardless of direction?
             endPoint = area.calculateDirectionalNearestPointToArea(endPoint, startPoint);
         }
+        
         //We now have start and end point inside of area.
-        //Calculate the path
-        
-        
+        Line directPath = new Line(startPoint, endPoint);
+        List<Line> crossedEdges = Stream.of(areaLines).filter(l -> l.doIntersect(directPath)).toList();
+        if (!crossedEdges.isEmpty()) {
+            //Direct path crosses at least one edge
+        }
         //Add endpoint
         result.add(endPoint);
         return result.toArray(Point[]::new);

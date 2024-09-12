@@ -120,7 +120,7 @@ public record Line(Point p1, Point p2) {
      * @param other
      * @return true if line intersects
      */
-    boolean doIntersect(Line other) {
+    public boolean doIntersect(Line other) {
         int o1 = orientation(other.p1);
         int o2 = orientation(other.p2);
         int o3 = other.orientation(p1);
