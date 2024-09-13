@@ -28,7 +28,7 @@ public class PathFinder {
     /**
      * Takes the given area and calculates triangles of all points of the
      * area.<br>
-     * This array can be overwritten with      {@link #setAreaTriangles(de.itwerkstatt.pathfinder.entities.Triangle[]) 
+     * This array can be overwritten with null null     {@link #setAreaTriangles(de.itwerkstatt.pathfinder.entities.Triangle[]) 
      * setAreaTriangles} method which can be necessary if the calculation of
      * triangles did not work. So please examine the calculated triangles with
      * {@link #getAreaTriangles()}.
@@ -65,9 +65,9 @@ public class PathFinder {
      * Tries to find the shortest possible path from startpoint to endpoint. If
      * the startPoint is outside of the area, first point in the result array
      * will be the point on the border of the area.<br>
-     * If the endPoint is outside of the area, last point in the result
-     * array will be the point on the border of the area. If there is no
-     * possible path from start to end, an empty array will be returned.
+     * If the endPoint is outside of the area, last point in the result array
+     * will be the point on the border of the area. If there is no possible path
+     * from start to end, an empty array will be returned.
      *
      * @return an array of points
      * @throws IllegalArgumentException if start or endpoint is null
@@ -89,16 +89,61 @@ public class PathFinder {
             //Alternatively: NearestPointToArea regardless of direction?
             endPoint = area.calculateDirectionalNearestPointToArea(endPoint, startPoint);
         }
-        
+
         //We now have start and end point inside of area.
-        Line directPath = new Line(startPoint, endPoint);
-        List<Line> crossedEdges = Stream.of(areaLines).filter(l -> l.doIntersect(directPath)).toList();
+        List<Line> crossedEdges = Stream.of(areaLines).filter(l -> l.doIntersect(new Line(startPoint, endPoint))).toList();
+        //Direct path from start to end crosses some area edges
         if (!crossedEdges.isEmpty()) {
-            //Direct path crosses at least one edge
+            Line areaLine = getLineWithShortestPathFromStartpoint(crossedEdges);
+
+            //Check point 1
+            List<Point> subPath1 = new ArrayList<>();
+            double distancePath1 = 0;
+            //Go along points till direct path without crossings 
+            for (Point p : area.getAllPointsBeginningWith(areaLine.p1())) {
+                subPath1.add(p);
+                Line line = new Line(p, endPoint);
+                distancePath1 += line.length();
+                if (Stream.of(areaLines).noneMatch(l -> l.doIntersect(line))) {
+                    //No intersection, we found a path to destination!
+                    break;
+                }
+            }
+            //Check point 2
+            List<Point> subPath2 = new ArrayList<>();
+            double distancePath2 = 0;
+            //Go along points till direct path without crossings 
+            for (Point p : area.getAllPointsBeginningWith(areaLine.p2())) {
+                subPath2.add(p);
+                Line line = new Line(p, endPoint);
+                distancePath2 += line.length();
+                if (Stream.of(areaLines).noneMatch(l -> l.doIntersect(line))) {
+                    //No intersection, we found a path to destination!
+                    break;
+                }
+            }
+            if (distancePath1 < distancePath2) {
+                result.addAll(subPath1);
+            } else {
+                result.addAll(subPath2);
+            }
         }
         //Add endpoint
         result.add(endPoint);
         return result.toArray(Point[]::new);
+    }
+
+    private Line getLineWithShortestPathFromStartpoint(List<Line> crossedAreaLines) {
+        double minDistance = Double.MAX_VALUE;
+        Line areaLineWithShortestPath = null;
+        for (Line areaLine : crossedAreaLines) {
+            double distance = new Line(startPoint, areaLine.getNearestPointToLine(startPoint)).length();
+            if (distance < minDistance) {
+                minDistance = distance;
+                areaLineWithShortestPath = areaLine;
+            }
+        }
+        return areaLineWithShortestPath;
     }
 
     /**
@@ -113,7 +158,7 @@ public class PathFinder {
             areaTriangles[i - 2] = new Triangle(p1, p2, p3);
         }
     }
-    
+
     /**
      * Calculates all edge-lines of the area by the points.
      */
@@ -122,10 +167,10 @@ public class PathFinder {
         for (int i = 0; i < area.points().length; i++) {
             Point p1 = area.points()[i];
             Point p2 = area.points()[0];
-            if ((i+1) < area.points().length) {
-                p2 = area.points()[i+1];
+            if ((i + 1) < area.points().length) {
+                p2 = area.points()[i + 1];
             }
-            areaLines[i] = new Line(p1,p2);
+            areaLines[i] = new Line(p1, p2);
         }
     }
 
@@ -135,6 +180,14 @@ public class PathFinder {
 
     public Triangle[] getAreaTriangles() {
         return areaTriangles;
+    }
+
+    public Point getStartPoint() {
+        return startPoint;
+    }
+
+    public Point getEndPoint() {
+        return endPoint;
     }
 
     /**
