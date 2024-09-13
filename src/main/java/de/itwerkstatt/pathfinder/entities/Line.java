@@ -1,7 +1,5 @@
 package de.itwerkstatt.pathfinder.entities;
 
-import java.util.stream.DoubleStream;
-
 /**
  * A line segment defined by two points
  *
@@ -10,37 +8,18 @@ import java.util.stream.DoubleStream;
 public record Line(Point p1, Point p2) {
 
     /**
-     * Checks if the given value is between the x-coord value of p1 and p2
-     *
-     * @param x
-     * @return true, if x is between p1.x and p2.x
-     */
-    boolean isValBetweenSegmentX(double x) {
-        double maxX = DoubleStream.of(p1.x(), p2.x()).max().getAsDouble();
-        double minX = DoubleStream.of(p1.x(), p2.x()).min().getAsDouble();
-        return x >= minX && x <= maxX;
-    }
-
-    /**
-     * Checks if the given value is between the y-coord value of p1 and p2
-     *
-     * @param y
-     * @return true, if y is between p1.y and p2.y
-     */
-    boolean isValBetweenSegmentY(double y) {
-        double maxY = DoubleStream.of(p1.y(), p2.y()).max().getAsDouble();
-        double minY = DoubleStream.of(p1.y(), p2.y()).min().getAsDouble();
-        return y >= minY && y <= maxY;
-    }
-
-    /**
-     * Checks if the given point is between p1 and p2
+     * Checks if the given point p is between the linesegment by checking the
+     * coordinate-values
      *
      * @param p
      * @return true, if p is between p1 and p2
      */
     boolean isPointBetweenSegmentpoints(Point p) {
-        return isValBetweenSegmentX(p.x()) && isValBetweenSegmentY(p.y());
+        double maxY = p1.y() > p2.y() ? p1.y() : p2.y();
+        double minY = p1.y() < p2.y() ? p1.y() : p2.y();
+        double maxX = p1.x() > p2.x() ? p1.x() : p2.x();
+        double minX = p1.x() < p2.x() ? p1.x() : p2.x();
+        return p.y() >= minY && p.y() <= maxY && p.x() >= minX && p.x() <= maxX;
     }
 
     /**
@@ -50,7 +29,7 @@ public record Line(Point p1, Point p2) {
      * @param p Starting point
      * @return Point
      */
-    Point getNearestPointToLine(Point p) {
+    public Point getNearestPointToLine(Point p) {
         System.out.println("Starting point: " + p + ", Line: " + this);
         Point intersectionPoint;
         boolean isHorizontal = p1.y() == p2.y();
@@ -100,10 +79,10 @@ public record Line(Point p1, Point p2) {
         }
         return p1;
     }
-    
+
     /**
-     * Calculates the orientation of the three points
-     * line.p1, line.p2, p
+     * Calculates the orientation of the three points line.p1, line.p2, p
+     *
      * @param p
      * @return 0 = collinear, 1 = clock wise, 2 = counter clock wise
      */
@@ -114,9 +93,10 @@ public record Line(Point p1, Point p2) {
         }
         return (result > 0) ? 1 : 2;
     }
-    
+
     /**
      * Checks if the line intersects with the other
+     *
      * @param other
      * @return true if line intersects
      */
@@ -125,14 +105,34 @@ public record Line(Point p1, Point p2) {
         int o2 = orientation(other.p2);
         int o3 = other.orientation(p1);
         int o4 = other.orientation(p2);
-
-        if (o1 != o2 && o3 != o4) return true;
+        
+        //Lines have different orientations
+        if (o1 != o2 && o3 != o4) {
+            //Return only true if they do not share a point.
+            return !(p1.equals(other.p1) || p2.equals(other.p1) || p1.equals(other.p2) || p2.equals(other.p2));
+        }
         //Line is on other line
-        if (o1 == 0 && o2 == 0 && o3 == 0 && o4 == 0) return false;
+        if (o1 == 0 && o2 == 0 && o3 == 0 && o4 == 0) {
+            return false;
+        }
 
-        if (o1 == 0 && isPointBetweenSegmentpoints(other.p1)) return true;
-        if (o2 == 0 && isPointBetweenSegmentpoints(other.p2)) return true;
-        if (o3 == 0 && other.isPointBetweenSegmentpoints(p1)) return true;
+        if (o1 == 0 && isPointBetweenSegmentpoints(other.p1)) {
+            return true;
+        }
+        if (o2 == 0 && isPointBetweenSegmentpoints(other.p2)) {
+            return true;
+        }
+        if (o3 == 0 && other.isPointBetweenSegmentpoints(p1)) {
+            return true;
+        }
         return o4 == 0 && other.isPointBetweenSegmentpoints(p2);
+    }
+
+    /**
+     * Calculates the length of this line by Pythagorean theorem
+     * @return 
+     */
+    public double length() {
+        return Math.sqrt(Math.pow(p2.x() - p1.x(), 2) + Math.pow(p2.y() - p1.y(), 2));
     }
 }
