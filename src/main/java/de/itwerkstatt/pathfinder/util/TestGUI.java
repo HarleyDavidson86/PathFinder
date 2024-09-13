@@ -3,18 +3,28 @@ package de.itwerkstatt.pathfinder.util;
 import de.itwerkstatt.pathfinder.PathFinder;
 import de.itwerkstatt.pathfinder.entities.Point;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import static java.util.Collections.list;
 import java.util.stream.Stream;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 /**
- * Small TestGUI to check generated area and triangles
- * Start and end point can be set by clicking on the frame
+ * Small TestGUI to check generated area and triangles Start and end point can
+ * be set by clicking on the frame
+ *
  * @author dsust
  */
 public class TestGUI {
@@ -24,6 +34,7 @@ public class TestGUI {
     private final JFrame frame;
 
     private final CanvasPanel canvas;
+    private JList<String> pathPointList;
 
     public TestGUI(PathFinder p) {
         this.pathFinder = p;
@@ -40,30 +51,47 @@ public class TestGUI {
         canvas.setPreferredSize(canvas.getMinimumSize());
         canvas.setArea(p.getArea());
         canvas.setTriangles(p.getAreaTriangles());
+        canvas.setStartPoint(p.getStartPoint());
+        canvas.setEndPoint(p.getEndPoint());
         canvas.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 Point[] points = canvas.setPoint(new Point(e.getX(), e.getY()));
                 if (points != null) {
                     p.setStartAndEndpoint(points[0], points[1]);
-                    canvas.setPath(p.findPath());
+                    Point[] path = p.findPath();
+                    canvas.setPath(path);
+                    populatePathPointList(path);
                 } else {
                     canvas.setPath(null);
+                    ((DefaultListModel) pathPointList.getModel()).removeAllElements();
                 }
             }
         });
-        
+
+        frame.add(canvas, BorderLayout.CENTER);
+        frame.add(setupFilterCheckboxes(), BorderLayout.EAST);
+        frame.add(setupPathList(), BorderLayout.WEST);
+
         try {
-            canvas.setPath(p.findPath());
+            Point[] path = p.findPath();
+            canvas.setPath(path);
+            populatePathPointList(path);
         } catch (IllegalArgumentException ignore) {
             //No start and endpoint available yet
         }
 
-        frame.add(canvas, BorderLayout.CENTER);
-        frame.add(setupFilterCheckboxes(), BorderLayout.EAST);
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+    }
+
+    private void populatePathPointList(Point[] path) {
+        DefaultListModel listModel = (DefaultListModel) pathPointList.getModel();
+        listModel.removeAllElements();
+        for (int i = 0; i < path.length; i++) {
+            listModel.addElement(String.format("%d: (%s/%s)", i + 1, Double.toString(path[i].x()), Double.toString(path[i].y())));
+        }
     }
 
     private JPanel setupFilterCheckboxes() {
@@ -75,6 +103,45 @@ public class TestGUI {
             c.setSelected(true);
             p.add(c);
         }
+        return p;
+    }
+
+    private Component setupPathList() {
+        JPanel p = new JPanel();
+        pathPointList = new JList<>(new DefaultListModel());
+        pathPointList.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (e.getValueIsAdjusting()) {
+                    canvas.setHighlightedPathPointIndex(e.getLastIndex());
+                }
+            }
+        });
+        pathPointList.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent ke) {
+                if (ke.getKeyCode() == KeyEvent.VK_DOWN) {
+                    ke.consume();
+                    if (pathPointList.getSelectedIndex() == pathPointList.getModel().getSize() - 1) {
+                        pathPointList.setSelectedIndex(0);
+                    } else {
+                        pathPointList.setSelectedIndex(pathPointList.getSelectedIndex()+1);
+                    }
+                    canvas.setHighlightedPathPointIndex(pathPointList.getSelectedIndex());
+                }
+                if (ke.getKeyCode() == KeyEvent.VK_UP) {
+                    ke.consume();
+                    if (pathPointList.getSelectedIndex() == 0) {
+                        pathPointList.setSelectedIndex(pathPointList.getModel().getSize() - 1);
+                    } else {
+                        pathPointList.setSelectedIndex(pathPointList.getSelectedIndex()-1);
+                    }
+                    canvas.setHighlightedPathPointIndex(pathPointList.getSelectedIndex());
+                }
+            }
+        });
+        p.setPreferredSize(new Dimension(100, 500));
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+        p.add(new JScrollPane(pathPointList));
         return p;
     }
 

@@ -9,8 +9,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.stream.Stream;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
@@ -29,9 +27,11 @@ public class CanvasPanel extends JPanel implements ItemListener {
     private Point[] path;
 
     private final int POINT_SIZE = 8;
+    
+    private int highlightedPathPoint = -1;
 
     public enum Filter {
-        AREA, TRIANGLES, PATH, POINTS;
+        AREA, AREA_POINTS, TRIANGLES, TRIANGLE_POINTS, PATH, PATH_POINTS, START_END_POINTS;
 
         private Filter() {
             visible = true;
@@ -69,6 +69,11 @@ public class CanvasPanel extends JPanel implements ItemListener {
     public void setPath(Point[] path) {
         this.path = path;
     }
+    
+    void setHighlightedPathPointIndex(int newIndex) {
+        highlightedPathPoint = newIndex;
+        SwingUtilities.invokeLater(() -> repaint());
+    }
     //</editor-fold>
 
     @Override
@@ -80,7 +85,7 @@ public class CanvasPanel extends JPanel implements ItemListener {
             g2d.setStroke(new BasicStroke(3));
             drawPointArray(g2d, area.points(), false);
             //Points of area
-            if (Filter.POINTS.isVisible()) {
+            if (Filter.AREA_POINTS.isVisible()) {
                 for (Point point : area.points()) {
                     drawPoint(g2d, "", (int) point.x(), (int) point.y());
                 }
@@ -95,7 +100,7 @@ public class CanvasPanel extends JPanel implements ItemListener {
                 drawPointArray(g2d, new Point[]{tri.p1(), tri.p2(), tri.p3()}, false);
             }
             //Points of area
-            if (Filter.POINTS.isVisible()) {
+            if (Filter.TRIANGLE_POINTS.isVisible()) {
                 for (Point point : Stream.of(triangles).flatMap(t -> Stream.of(t.p1(), t.p2(), t.p3())).toList()) {
                     drawPoint(g2d, "", (int) point.x(), (int) point.y());
                 }
@@ -103,21 +108,24 @@ public class CanvasPanel extends JPanel implements ItemListener {
         }
 
         g2d.setColor(Color.BLACK);
-        if (startPoint != null && Filter.POINTS.isVisible()) {
+        if (startPoint != null && Filter.START_END_POINTS.isVisible()) {
             drawPoint(g2d, "Start", (int) startPoint.x(), (int) startPoint.y());
         }
-        if (endPoint != null && Filter.POINTS.isVisible()) {
+        if (endPoint != null && Filter.START_END_POINTS.isVisible()) {
             drawPoint(g2d, "End", (int) endPoint.x(), (int) endPoint.y());
         }
 
         //Path
-        if (path != null) {
+        if (path != null && Filter.PATH.isVisible()) {
             g2d.setColor(Color.BLUE);
             drawPointArray(g2d, path, true);
-            if (Filter.POINTS.isVisible()) {
+            if (Filter.PATH_POINTS.isVisible()) {
                 for (Point point : path) {
                     drawPoint(g2d, "", (int) point.x(), (int) point.y());
                 }
+            }
+            if (highlightedPathPoint > -1) {
+                drawPoint(g2d, "", (int) path[highlightedPathPoint].x(), (int) path[highlightedPathPoint].y());
             }
         }
     }
