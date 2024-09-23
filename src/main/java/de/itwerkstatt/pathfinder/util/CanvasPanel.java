@@ -31,10 +31,16 @@ public class CanvasPanel extends JPanel implements ItemListener {
     private int highlightedPathPoint = -1;
 
     public enum Filter {
-        AREA, AREA_POINTS, TRIANGLES, TRIANGLE_POINTS, PATH, PATH_POINTS, START_END_POINTS;
+        AREA(true), 
+        AREA_POINTS(false), 
+        TRIANGLES(false), 
+        TRIANGLE_POINTS(false), 
+        PATH(true), 
+        PATH_POINTS(false), 
+        START_END_POINTS(false);
 
-        private Filter() {
-            visible = true;
+        private Filter(boolean isVisible) {
+            visible = isVisible;
         }
 
         private boolean visible;

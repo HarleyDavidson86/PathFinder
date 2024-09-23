@@ -9,7 +9,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import static java.util.Collections.list;
 import java.util.stream.Stream;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
@@ -100,7 +99,7 @@ public class TestGUI {
         for (CanvasPanel.Filter f : CanvasPanel.Filter.values()) {
             JCheckBox c = new JCheckBox(f.name());
             c.addItemListener(canvas);
-            c.setSelected(true);
+            c.setSelected(f.isVisible());
             p.add(c);
         }
         return p;
@@ -112,9 +111,7 @@ public class TestGUI {
         pathPointList.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
-                if (e.getValueIsAdjusting()) {
-                    canvas.setHighlightedPathPointIndex(e.getLastIndex());
-                }
+                canvas.setHighlightedPathPointIndex(pathPointList.getSelectedIndex());
             }
         });
         pathPointList.addKeyListener(new KeyAdapter() {
@@ -124,7 +121,7 @@ public class TestGUI {
                     if (pathPointList.getSelectedIndex() == pathPointList.getModel().getSize() - 1) {
                         pathPointList.setSelectedIndex(0);
                     } else {
-                        pathPointList.setSelectedIndex(pathPointList.getSelectedIndex()+1);
+                        pathPointList.setSelectedIndex(pathPointList.getSelectedIndex() + 1);
                     }
                     canvas.setHighlightedPathPointIndex(pathPointList.getSelectedIndex());
                 }
@@ -133,7 +130,7 @@ public class TestGUI {
                     if (pathPointList.getSelectedIndex() == 0) {
                         pathPointList.setSelectedIndex(pathPointList.getModel().getSize() - 1);
                     } else {
-                        pathPointList.setSelectedIndex(pathPointList.getSelectedIndex()-1);
+                        pathPointList.setSelectedIndex(pathPointList.getSelectedIndex() - 1);
                     }
                     canvas.setHighlightedPathPointIndex(pathPointList.getSelectedIndex());
                 }
