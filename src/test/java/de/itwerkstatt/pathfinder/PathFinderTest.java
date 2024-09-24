@@ -140,6 +140,14 @@ public class PathFinderTest {
             for (int i = 0; i < resultPath.length; i++) {
                 assertEquals(testcase.expectedPath[i], resultPath[i]);
             }
+            
+            System.out.println("Test case #" + (caseNumber + 1) + " inverted");
+            p.setStartAndEndpoint(testcase.end, testcase.start);
+            resultPath = p.findPath();
+            assertEquals(testcase.expectedPath.length, resultPath.length);
+            for (int i = 0; i < resultPath.length; i++) {
+                assertEquals(testcase.expectedPath[resultPath.length-1-i], resultPath[i]);
+            }
         }
     }
 
