@@ -5,7 +5,9 @@ import de.itwerkstatt.pathfinder.entities.Line;
 import de.itwerkstatt.pathfinder.entities.Point;
 import de.itwerkstatt.pathfinder.entities.Triangle;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -28,7 +30,7 @@ public class PathFinder {
     /**
      * Takes the given area and calculates triangles of all points of the
      * area.<br>
-     * This array can be overwritten with null null     {@link #setAreaTriangles(de.itwerkstatt.pathfinder.entities.Triangle[]) 
+     * This array can be overwritten with null null null     {@link #setAreaTriangles(de.itwerkstatt.pathfinder.entities.Triangle[]) 
      * setAreaTriangles} method which can be necessary if the calculation of
      * triangles did not work. So please examine the calculated triangles with
      * {@link #getAreaTriangles()}.
@@ -96,37 +98,18 @@ public class PathFinder {
         if (!crossedEdges.isEmpty()) {
             Line areaLine = getLineWithShortestPathFromStartpoint(crossedEdges);
 
-            //Check point 1
-            List<Point> subPath1 = new ArrayList<>();
-            double distancePath1 = 0;
-            //Go along points till direct path without crossings 
-            for (Point p : area.getAllPointsBeginningWith(areaLine.p1())) {
-                subPath1.add(p);
-                Line line = new Line(p, endPoint);
-                distancePath1 += line.length();
-                if (Stream.of(areaLines).noneMatch(l -> l.doIntersect(line))) {
-                    //No intersection, we found a path to destination!
-                    break;
-                }
-            }
-            //Check point 2
-            List<Point> subPath2 = new ArrayList<>();
-            double distancePath2 = 0;
-            //Go along points till direct path without crossings 
-            for (Point p : area.getAllPointsBeginningWith(areaLine.p2())) {
-                subPath2.add(p);
-                Line line = new Line(p, endPoint);
-                distancePath2 += line.length();
-                if (Stream.of(areaLines).noneMatch(l -> l.doIntersect(line))) {
-                    //No intersection, we found a path to destination!
-                    break;
-                }
-            }
-            if (distancePath1 < distancePath2) {
-                result.addAll(subPath1);
-            } else {
-                result.addAll(subPath2);
-            }
+            //Key: Distance, Val: Subpath
+            Map<Double, List<Point>> subPathCandidates = new HashMap<>();
+
+            //Clock wise
+            calculateSubPathAndDistance(subPathCandidates, area.getAllPointsBeginningWith(areaLine.p1(), false));
+            calculateSubPathAndDistance(subPathCandidates, area.getAllPointsBeginningWith(areaLine.p2(), false));
+            
+            //Counter clock wise
+            calculateSubPathAndDistance(subPathCandidates, area.getAllPointsBeginningWith(areaLine.p1(), true));
+            calculateSubPathAndDistance(subPathCandidates, area.getAllPointsBeginningWith(areaLine.p2(), true));
+            
+            result.addAll(subPathCandidates.get(subPathCandidates.keySet().stream().min(Double::compare).get()));
         }
         //Add endpoint
         result.add(endPoint);
@@ -197,5 +180,28 @@ public class PathFinder {
      */
     public void setAreaTriangles(Triangle... areaTriangles) {
         this.areaTriangles = areaTriangles;
+    }
+
+    /**
+     * Calculates the distance from areaEdgePoints array to the endpoint
+     * and puts the result in the map
+     * @param subPathCandidates
+     * @param startPoint 
+     */
+    private void calculateSubPathAndDistance(Map<Double, List<Point>> subPathCandidates, Point[] areaEdgePoints) {
+        List<Point> subPath = new ArrayList<>();
+        double distance = 0;
+        //Go along points till direct path without crossings 
+        for (Point p : areaEdgePoints) {
+            subPath.add(p);
+            Line line = new Line(p, endPoint);
+            distance += line.length();
+            if (Stream.of(areaLines).noneMatch(l -> l.doIntersect(line))) {
+                //No intersection, we found a path to destination!
+                break;
+            } else {
+            }
+        }
+        subPathCandidates.put(distance, subPath);
     }
 }
