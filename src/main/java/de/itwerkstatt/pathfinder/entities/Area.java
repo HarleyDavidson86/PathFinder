@@ -1,6 +1,7 @@
 package de.itwerkstatt.pathfinder.entities;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * An area defined by at least three points
@@ -86,17 +87,29 @@ public record Area(Point... points) {
      * @return 
      * @throws IllegalArgumentException if point is not in points array of area
      */
-    public Point[] getAllPointsBeginningWith(Point start) {
+    public Point[] getAllPointsBeginningWith(Point start, boolean reverseOrder) {
         Point[] result = new Point[points.length];
+        
+        Point[] pointArray = points;
+        
+        if (reverseOrder) {
+            Point[] reversePoints = new Point[result.length];
+            for (int i = 0; i < result.length; i++) {
+                reversePoints[result.length-1-i] = points[i];
+            }
+            pointArray = reversePoints;
+        }
+        
         //Find index of startpoint
-        int indexOfStartpoint = Arrays.asList(points).indexOf(start);
+        int indexOfStartpoint = Arrays.asList(pointArray).indexOf(start);
         if (indexOfStartpoint < 0) {
             throw new IllegalArgumentException(start+" is not an area defining point");
         }
         //Put points from startindex till end of array in result
-        System.arraycopy(points, indexOfStartpoint, result, 0, points.length-indexOfStartpoint);
+        System.arraycopy(pointArray, indexOfStartpoint, result, 0, pointArray.length-indexOfStartpoint);
         //Put points from beginning till startindex in result
-        System.arraycopy(points, 0, result, points.length-indexOfStartpoint, indexOfStartpoint);
+        System.arraycopy(pointArray, 0, result, pointArray.length-indexOfStartpoint, indexOfStartpoint);
+        
         return result;
     }
 }

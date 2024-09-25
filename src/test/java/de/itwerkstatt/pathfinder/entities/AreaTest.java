@@ -122,9 +122,31 @@ public class AreaTest {
             System.out.println("Test case #" + (caseNumber + 1));
             ShiftPointsArrayTestcase testcase = testcases[caseNumber];
             if (testcase.expectedResult != null) {
-                assertEquals(Arrays.asList(testcase.expectedResult), Arrays.asList(a.getAllPointsBeginningWith(testcase.startpoint)));
+                assertEquals(Arrays.asList(testcase.expectedResult), Arrays.asList(a.getAllPointsBeginningWith(testcase.startpoint, false)));
             } else {
-                assertThrows(IllegalArgumentException.class, () -> a.getAllPointsBeginningWith(testcase.startpoint));
+                assertThrows(IllegalArgumentException.class, () -> a.getAllPointsBeginningWith(testcase.startpoint, false));
+            }
+        }
+    }
+
+    @Test
+    public void testGetAllPointsBeginningWithReverse() {
+        Area a = new Area(new Point(1, 1), new Point(2, 2), new Point(3, 3), new Point(4, 4), new Point(5, 5));
+        ShiftPointsArrayTestcase[] testcases = new ShiftPointsArrayTestcase[]{
+            new ShiftPointsArrayTestcase(new Point(1, 1), new Point[]{new Point(1, 1), new Point(5, 5), new Point(4, 4), new Point(3, 3), new Point(2, 2)}),
+            new ShiftPointsArrayTestcase(new Point(2, 2), new Point[]{new Point(2, 2), new Point(1, 1), new Point(5, 5), new Point(4, 4), new Point(3, 3)}),
+            new ShiftPointsArrayTestcase(new Point(3, 3), new Point[]{new Point(3, 3), new Point(2, 2), new Point(1, 1), new Point(5, 5), new Point(4, 4)}),
+            new ShiftPointsArrayTestcase(new Point(4, 4), new Point[]{new Point(4, 4), new Point(3, 3), new Point(2, 2), new Point(1, 1), new Point(5, 5)}),
+            new ShiftPointsArrayTestcase(new Point(5, 5), new Point[]{new Point(5, 5), new Point(4, 4), new Point(3, 3), new Point(2, 2), new Point(1, 1)}),
+            new ShiftPointsArrayTestcase(new Point(6, 6), null),};
+
+        for (int caseNumber = 0; caseNumber < testcases.length; caseNumber++) {
+            System.out.println("Test case #" + (caseNumber + 1));
+            ShiftPointsArrayTestcase testcase = testcases[caseNumber];
+            if (testcase.expectedResult != null) {
+                assertEquals(Arrays.asList(testcase.expectedResult), Arrays.asList(a.getAllPointsBeginningWith(testcase.startpoint, true)));
+            } else {
+                assertThrows(IllegalArgumentException.class, () -> a.getAllPointsBeginningWith(testcase.startpoint, true));
             }
         }
     }
