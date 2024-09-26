@@ -105,7 +105,7 @@ public record Line(Point p1, Point p2) {
         int o2 = orientation(other.p2);
         int o3 = other.orientation(p1);
         int o4 = other.orientation(p2);
-        
+
         //Lines have different orientations
         if (o1 != o2 && o3 != o4) {
             //Return only true if they do not share a point.
@@ -130,9 +130,19 @@ public record Line(Point p1, Point p2) {
 
     /**
      * Calculates the length of this line by Pythagorean theorem
-     * @return 
+     *
+     * @return
      */
     public double length() {
         return Math.sqrt(Math.pow(p2.x() - p1.x(), 2) + Math.pow(p2.y() - p1.y(), 2));
+    }
+
+    /**
+     * Returns the center point of this line
+     *
+     * @return
+     */
+    public Point getCenterPoint() {
+        return new Point((p1.x() + p2.x()) / 2, (p1.y() + p2.y()) / 2);
     }
 }

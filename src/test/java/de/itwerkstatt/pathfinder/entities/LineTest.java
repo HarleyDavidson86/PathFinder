@@ -221,41 +221,41 @@ public class LineTest {
         Line l = new Line(new Point(1, 1), new Point(10, 1));
 
         IntersectTestcase[] testcases = new IntersectTestcase[]{
-//            //Case 1
-//            //(1/1)                        (10/1)
-//            // o-----------------------------o
-//            // X-----------------------------X
-//            //(1/0)                        (10/0)
-//            new IntersectTestcase(l, new Line(new Point(1, 0), new Point(10, 0)), false),
-//            //Case 2
-//            //                  X (8/10)
-//            //                 /
-//            //                /
-//            //(1/1)          X (6/5)       (10/1)
-//            // o-----------------------------o
-//            new IntersectTestcase(l, new Line(new Point(6, 5), new Point(8, 10)), false),
-//            //Case 3
-//            //                X (6/5)
-//            //(1/1)          /             (10/1)
-//            // o-----------------------------o
-//            //             /
-//            //            X (4/-1)
-//            new IntersectTestcase(l, new Line(new Point(4, -1), new Point(6, 5)), true),
-//            //Case 4
-//            //(1/1)                        (10/1)
-//            // o---------X------X------------o
-//            //         (6/1)  (4/1)
-//            new IntersectTestcase(l, new Line(new Point(4, 1), new Point(6, 1)), false),
-//            //Case 5
-//            //(1/1)                        (10/1)
-//            // o---------X-------------------o--------X
-//            //         (6/1)                        (14/1)
-//            new IntersectTestcase(l, new Line(new Point(6, 1), new Point(14, 1)), false),
-//            //Case 6
-//            //(1/1)                        (10/1)
-//            // o-----------------------------o--------X
-//            //                            (10/1)   (14/1)
-//            new IntersectTestcase(l, new Line(new Point(10, 1), new Point(14, 1)), false),
+            //Case 1
+            //(1/1)                        (10/1)
+            // o-----------------------------o
+            // X-----------------------------X
+            //(1/0)                        (10/0)
+            new IntersectTestcase(l, new Line(new Point(1, 0), new Point(10, 0)), false),
+            //Case 2
+            //                  X (8/10)
+            //                 /
+            //                /
+            //(1/1)          X (6/5)       (10/1)
+            // o-----------------------------o
+            new IntersectTestcase(l, new Line(new Point(6, 5), new Point(8, 10)), false),
+            //Case 3
+            //                X (6/5)
+            //(1/1)          /             (10/1)
+            // o-----------------------------o
+            //             /
+            //            X (4/-1)
+            new IntersectTestcase(l, new Line(new Point(4, -1), new Point(6, 5)), true),
+            //Case 4
+            //(1/1)                        (10/1)
+            // o---------X------X------------o
+            //         (6/1)  (4/1)
+            new IntersectTestcase(l, new Line(new Point(4, 1), new Point(6, 1)), false),
+            //Case 5
+            //(1/1)                        (10/1)
+            // o---------X-------------------o--------X
+            //         (6/1)                        (14/1)
+            new IntersectTestcase(l, new Line(new Point(6, 1), new Point(14, 1)), false),
+            //Case 6
+            //(1/1)                        (10/1)
+            // o-----------------------------o--------X
+            //                            (10/1)   (14/1)
+            new IntersectTestcase(l, new Line(new Point(10, 1), new Point(14, 1)), false),
             //Case 7
             //(1/1)                        (10/1)
             // o-----------------------------x
@@ -310,12 +310,33 @@ public class LineTest {
 
     /**
      * Round double value to 2 decimal places
+     *
      * @param value
-     * @return 
+     * @return
      */
     double round(double value) {
         BigDecimal bd = BigDecimal.valueOf(value);
         bd = bd.setScale(2, RoundingMode.HALF_UP);
         return bd.doubleValue();
+    }
+
+    record CenterTestcase(Point p1, Point p2, Point expectedResult) {
+
+    }
+
+    @Test
+    public void testCenter() {
+        CenterTestcase[] testcases = new CenterTestcase[]{
+            new CenterTestcase(new Point(0, 0), new Point(10, 10), new Point(5, 5)),
+            new CenterTestcase(new Point(10, 10), new Point(5, 5), new Point(7.5, 7.5)),
+            new CenterTestcase(new Point(10, 10), new Point(10, 10), new Point(10, 10))
+        };
+
+        for (int caseNumber = 0; caseNumber < testcases.length; caseNumber++) {
+            System.out.println("Test case #" + (caseNumber + 1));
+            CenterTestcase testcase = testcases[caseNumber];
+            assertEquals(testcase.expectedResult, new Line(testcase.p1, testcase.p2).getCenterPoint());
+            assertEquals(testcase.expectedResult, new Line(testcase.p2, testcase.p1).getCenterPoint());
+        }
     }
 }
