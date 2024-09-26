@@ -9,6 +9,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
@@ -27,16 +28,16 @@ public class CanvasPanel extends JPanel implements ItemListener {
     private Point[] path;
 
     private final int POINT_SIZE = 8;
-    
+
     private int highlightedPathPoint = -1;
 
     public enum Filter {
-        AREA(true), 
-        AREA_POINTS(false), 
-        TRIANGLES(false), 
-        TRIANGLE_POINTS(false), 
-        PATH(true), 
-        PATH_POINTS(false), 
+        AREA(true),
+        AREA_POINTS(false),
+        TRIANGLES(false),
+        TRIANGLE_POINTS(false),
+        PATH(true),
+        PATH_POINTS(false),
         START_END_POINTS(false);
 
         private Filter(boolean isVisible) {
@@ -75,7 +76,7 @@ public class CanvasPanel extends JPanel implements ItemListener {
     public void setPath(Point[] path) {
         this.path = path;
     }
-    
+
     void setHighlightedPathPointIndex(int newIndex) {
         highlightedPathPoint = newIndex;
         SwingUtilities.invokeLater(() -> repaint());
@@ -89,7 +90,7 @@ public class CanvasPanel extends JPanel implements ItemListener {
         //Draw Area
         if (area != null && Filter.AREA.isVisible()) {
             g2d.setStroke(new BasicStroke(3));
-            drawPointArray(g2d, area.points(), false);
+            drawPolygon(g2d, area.points(), false);
             //Points of area
             if (Filter.AREA_POINTS.isVisible()) {
                 for (Point point : area.points()) {
@@ -103,8 +104,9 @@ public class CanvasPanel extends JPanel implements ItemListener {
             g2d.setColor(Color.RED);
             g2d.setStroke(new BasicStroke(2));
             for (Triangle tri : triangles) {
-                drawPointArray(g2d, new Point[]{tri.p1(), tri.p2(), tri.p3()}, false);
+                drawPolygon(g2d, new Point[]{tri.p1(), tri.p2(), tri.p3()}, true);
             }
+            g2d.setColor(Color.RED);
             //Points of area
             if (Filter.TRIANGLE_POINTS.isVisible()) {
                 for (Point point : Stream.of(triangles).flatMap(t -> Stream.of(t.p1(), t.p2(), t.p3())).toList()) {
@@ -124,7 +126,7 @@ public class CanvasPanel extends JPanel implements ItemListener {
         //Path
         if (path != null && Filter.PATH.isVisible()) {
             g2d.setColor(Color.BLUE);
-            drawPointArray(g2d, path, true);
+            drawLine(g2d, path);
             if (Filter.PATH_POINTS.isVisible()) {
                 for (Point point : path) {
                     drawPoint(g2d, "", (int) point.x(), (int) point.y());
@@ -136,7 +138,7 @@ public class CanvasPanel extends JPanel implements ItemListener {
         }
     }
 
-    private void drawPointArray(Graphics2D g2d, Point[] points, boolean asLine) {
+    private void drawLine(Graphics2D g2d, Point[] points) {
         int[] xPoints = new int[points.length];
         int[] yPoints = new int[points.length];
         for (int i = 0; i < points.length; i++) {
@@ -144,8 +146,23 @@ public class CanvasPanel extends JPanel implements ItemListener {
             xPoints[i] = (int) point.x();
             yPoints[i] = (int) point.y();
         }
-        if (asLine) {
-            g2d.drawPolyline(xPoints, yPoints, xPoints.length);
+        g2d.drawPolyline(xPoints, yPoints, xPoints.length);
+    }
+
+    private void drawPolygon(Graphics2D g2d, Point[] points, boolean fillWithRandomColor) {
+        int[] xPoints = new int[points.length];
+        int[] yPoints = new int[points.length];
+        for (int i = 0; i < points.length; i++) {
+            Point point = points[i];
+            xPoints[i] = (int) point.x();
+            yPoints[i] = (int) point.y();
+        }
+        if (fillWithRandomColor) {
+            g2d.setColor(new Color(
+                    ThreadLocalRandom.current().nextInt(255),
+                    ThreadLocalRandom.current().nextInt(255),
+                    ThreadLocalRandom.current().nextInt(255)));
+            g2d.fillPolygon(xPoints, yPoints, xPoints.length);
         } else {
             g2d.drawPolygon(xPoints, yPoints, xPoints.length);
         }
