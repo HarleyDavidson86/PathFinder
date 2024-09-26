@@ -30,7 +30,7 @@ public class PathFinder {
     /**
      * Takes the given area and calculates triangles of all points of the
      * area.<br>
-     * This array can be overwritten with null null null     {@link #setAreaTriangles(de.itwerkstatt.pathfinder.entities.Triangle[]) 
+     * This array can be overwritten with null null null null null     {@link #setAreaTriangles(de.itwerkstatt.pathfinder.entities.Triangle[]) 
      * setAreaTriangles} method which can be necessary if the calculation of
      * triangles did not work. So please examine the calculated triangles with
      * {@link #getAreaTriangles()}.
@@ -104,16 +104,60 @@ public class PathFinder {
             //Clock wise
             calculateSubPathAndDistance(subPathCandidates, area.getAllPointsBeginningWith(areaLine.p1(), false));
             calculateSubPathAndDistance(subPathCandidates, area.getAllPointsBeginningWith(areaLine.p2(), false));
-            
+
             //Counter clock wise
             calculateSubPathAndDistance(subPathCandidates, area.getAllPointsBeginningWith(areaLine.p1(), true));
             calculateSubPathAndDistance(subPathCandidates, area.getAllPointsBeginningWith(areaLine.p2(), true));
-            
+
             result.addAll(subPathCandidates.get(subPathCandidates.keySet().stream().min(Double::compare).get()));
         }
         //Add endpoint
         result.add(endPoint);
-        return result.toArray(Point[]::new);
+
+        List<Point> simplifiedPath = simplifyPath(result);
+
+        return simplifiedPath.toArray(Point[]::new);
+    }
+
+    /**
+     * Simplify the given path regarding the area
+     *
+     * @param totalPath
+     * @return a simplified path from start to end
+     */
+    private List<Point> simplifyPath(List<Point> totalPath) {
+        // Begin from startpoint, find the last point in path which the current point
+        // can see directly without crossing an edge
+        List<Point> simplifiedPath = new ArrayList<>();
+        System.out.println("Begin simplifying path with size " + totalPath);
+        for (int i = 0; i < totalPath.size(); i++) {
+            if (i < 0) {
+                break;
+            }
+            Point currentPoint = totalPath.get(i);
+            System.out.println("Current start point with index #" + i + ", " + currentPoint);
+            simplifiedPath.add(currentPoint);
+            int nextPointIndex = -1;
+            for (int j = i + 1; j < totalPath.size(); j++) {
+                Point nextPoint = totalPath.get(j);
+                Line line = new Line(currentPoint, nextPoint);
+                //Check if line crosses no area edges
+                boolean crossAreaEdge = Stream.of(areaLines).noneMatch(l -> l.doIntersect(line));
+                //Check if center point of line is in area
+                //Maybe there is a better way but for now this works
+                boolean centerIsInArea = isPointInArea(line.getCenterPoint());
+                if (crossAreaEdge && centerIsInArea) {
+                    //line between currentPoint and nextPoint crosses no edge and center is in area
+                    System.out.println("Next point with index #" + j + " crosses no edge: " + nextPoint);
+                    nextPointIndex = j;
+                } else {
+                    //edge was crossed
+                    System.out.println("Next point with index #" + j + " crosses edge: " + nextPoint + ".");
+                }
+            }
+            i = nextPointIndex - 1;
+        }
+        return simplifiedPath;
     }
 
     private Line getLineWithShortestPathFromStartpoint(List<Line> crossedAreaLines) {
@@ -183,10 +227,11 @@ public class PathFinder {
     }
 
     /**
-     * Calculates the distance from areaEdgePoints array to the endpoint
-     * and puts the result in the map
+     * Calculates the distance from areaEdgePoints array to the endpoint and
+     * puts the result in the map
+     *
      * @param subPathCandidates
-     * @param startPoint 
+     * @param startPoint
      */
     private void calculateSubPathAndDistance(Map<Double, List<Point>> subPathCandidates, Point[] areaEdgePoints) {
         List<Point> subPath = new ArrayList<>();

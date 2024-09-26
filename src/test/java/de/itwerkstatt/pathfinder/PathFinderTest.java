@@ -125,7 +125,7 @@ public class PathFinderTest {
                 new Triangle(new Point(400, 300), new Point(250, 200), new Point(300, 100)),
                 new Triangle(new Point(400, 300), new Point(300, 100), new Point(400, 100))
             }, new Point(150, 160), new Point(350, 160), new Point[]{
-                new Point(150, 160), new Point(250, 200),new Point(350, 160)
+                new Point(150, 160), new Point(250, 200), new Point(350, 160)
             }),
             // Case 2
             // 
@@ -141,14 +141,14 @@ public class PathFinderTest {
             //     o-------------------------------o
             // (100,300)                       (400,300)
             new FindPathTestcase(new Area(
-                new Point(100, 100),
-                new Point(200, 100),
-                new Point(200, 200),
-                new Point(300, 200),
-                new Point(300, 100),
-                new Point(400, 100),
-                new Point(400, 300),
-                new Point(100, 300)
+            new Point(100, 100),
+            new Point(200, 100),
+            new Point(200, 200),
+            new Point(300, 200),
+            new Point(300, 100),
+            new Point(400, 100),
+            new Point(400, 300),
+            new Point(100, 300)
             ), new Triangle[]{
                 new Triangle(new Point(100, 300), new Point(100, 100), new Point(200, 100)),
                 new Triangle(new Point(100, 300), new Point(200, 100), new Point(200, 200)),
@@ -157,7 +157,46 @@ public class PathFinderTest {
                 new Triangle(new Point(300, 200), new Point(300, 100), new Point(400, 100)),
                 new Triangle(new Point(300, 200), new Point(400, 100), new Point(400, 300))
             }, new Point(150, 160), new Point(350, 160), new Point[]{
-                new Point(150, 160), new Point(200, 200),new Point(300, 200), new Point(350, 160)
+                new Point(150, 160), new Point(200, 200), new Point(300, 200), new Point(350, 160)
+            }),
+            // Case 3
+            // 
+            // (100,100) (200,100) (300,100) (400,100) (500,100) (600,100)
+            //     o---------o         o---------o         o---------o
+            //     |         |         |         |         |         |
+            //     |    s    |         |         |         |    e    |
+            //     |(150,150)|         |         |         |(550,150)|
+            //     |         |         |         |         |         |
+            //     |         o---------o         o---------o         |
+            //     |     (200,200) (300,200) (400,200) (500,200)     |
+            //     |                                                 |
+            //     o-------------------------------------------------o
+            // (100,300)                                         (600,300)
+            new FindPathTestcase(new Area(
+            new Point(100, 100),
+            new Point(200, 100),
+            new Point(200, 200),
+            new Point(300, 200),
+            new Point(300, 100),
+            new Point(400, 100),
+            new Point(400, 200),
+            new Point(500, 200),
+            new Point(500, 100),
+            new Point(600, 100),
+            new Point(600, 300),
+            new Point(100, 300)
+            ), new Triangle[]{
+                new Triangle(new Point(100, 300), new Point(100, 100), new Point(200, 100)),
+                new Triangle(new Point(100, 300), new Point(200, 100), new Point(200, 200)),
+                new Triangle(new Point(100, 300), new Point(200, 200), new Point(300, 200)),
+                new Triangle(new Point(100, 300), new Point(300, 200), new Point(400, 200)),
+                new Triangle(new Point(100, 300), new Point(400, 200), new Point(500, 200)),
+                new Triangle(new Point(300, 200), new Point(300, 100), new Point(400, 100)),
+                new Triangle(new Point(300, 200), new Point(400, 100), new Point(400, 200)),
+                new Triangle(new Point(500, 200), new Point(500, 100), new Point(600, 100)),
+                new Triangle(new Point(500, 200), new Point(600, 100), new Point(600, 300))
+            }, new Point(150, 150), new Point(550, 150), new Point[]{
+                new Point(150, 150), new Point(200, 200), new Point(300, 200), new Point(400, 200), new Point(500, 200), new Point(550, 150)
             })
         };
 
@@ -172,13 +211,13 @@ public class PathFinderTest {
             for (int i = 0; i < resultPath.length; i++) {
                 assertEquals(testcase.expectedPath[i], resultPath[i]);
             }
-            
+
             System.out.println("Test case #" + (caseNumber + 1) + " inverted");
             p.setStartAndEndpoint(testcase.end, testcase.start);
             resultPath = p.findPath();
             assertEquals(testcase.expectedPath.length, resultPath.length);
             for (int i = 0; i < resultPath.length; i++) {
-                assertEquals(testcase.expectedPath[resultPath.length-1-i], resultPath[i]);
+                assertEquals(testcase.expectedPath[resultPath.length - 1 - i], resultPath[i]);
             }
         }
     }
