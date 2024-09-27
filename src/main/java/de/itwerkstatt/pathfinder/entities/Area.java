@@ -1,7 +1,6 @@
 package de.itwerkstatt.pathfinder.entities;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * An area defined by at least three points

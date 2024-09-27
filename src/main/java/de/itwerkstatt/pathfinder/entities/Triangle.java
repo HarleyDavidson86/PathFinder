@@ -26,15 +26,11 @@ public record Triangle(Point p1, Point p2, Point p3) {
      * @return true, if point is located inside the triangle
      */
     public boolean isPointInTriangle(Point p) {
-        System.out.println("Point: " + p + ", Triangle: " + this);
-
         // The order of the points is important and must always 
         // have the same direction.
         double areaTri1 = new Triangle(p, p1, p2).calculateArea();
         double areaTri2 = new Triangle(p, p2, p3).calculateArea();
         double areaTri3 = new Triangle(p, p3, p1).calculateArea();
-        System.out.printf("Areas: %f %f %f\n", areaTri1, areaTri2, areaTri3);
-
         // Check if positive and negative areas present
         boolean has_neg_areas = (areaTri1 < 0d) || (areaTri2 < 0d) || (areaTri3 < 0d);
         boolean has_pos_areas = (areaTri1 > 0d) || (areaTri2 > 0d) || (areaTri3 > 0d);
