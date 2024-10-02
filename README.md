@@ -111,6 +111,7 @@ Project Link: [https://github.com/HarleyDavidson86/PathFinder](https://github.co
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-TBD
+Thanks to [David Gouveia](https://github.com/davidluzgouveia) and his blog entry about 
+[Pathfinding on a 2D Polygonal Map](https://www.david-gouveia.com/pathfinding-on-a-2d-polygonal-map).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
