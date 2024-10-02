@@ -2,12 +2,12 @@ package de.itwerkstatt.pathfinder;
 
 import de.itwerkstatt.pathfinder.entities.Area;
 import de.itwerkstatt.pathfinder.entities.Line;
+import de.itwerkstatt.pathfinder.entities.Node;
 import de.itwerkstatt.pathfinder.entities.Point;
 import de.itwerkstatt.pathfinder.entities.Triangle;
+import de.itwerkstatt.pathfinder.util.AStarUtil;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -30,7 +30,8 @@ public class PathFinder {
     /**
      * Takes the given area and calculates triangles of all points of the
      * area.<br>
-     * This array can be overwritten with null null null null null     {@link #setAreaTriangles(de.itwerkstatt.pathfinder.entities.Triangle[]) 
+     * This array can be overwritten with null null null null null null null null     
+     * {@link #setAreaTriangles(de.itwerkstatt.pathfinder.entities.Triangle[]) 
      * setAreaTriangles} method which can be necessary if the calculation of
      * triangles did not work. So please examine the calculated triangles with
      * {@link #getAreaTriangles()}.
@@ -93,84 +94,17 @@ public class PathFinder {
         }
 
         //We now have start and end point inside of area.
-        List<Line> crossedEdges = Stream.of(areaLines).filter(l -> l.doIntersect(new Line(startPoint, endPoint))).toList();
-        //Direct path from start to end crosses some area edges
-        if (!crossedEdges.isEmpty()) {
-            Line areaLine = getLineWithShortestPathFromStartpoint(crossedEdges);
-
-            //Key: Distance, Val: Subpath
-            Map<Double, List<Point>> subPathCandidates = new HashMap<>();
-
-            //Clock wise
-            calculateSubPathAndDistance(subPathCandidates, area.getAllPointsBeginningWith(areaLine.p1(), false));
-            calculateSubPathAndDistance(subPathCandidates, area.getAllPointsBeginningWith(areaLine.p2(), false));
-
-            //Counter clock wise
-            calculateSubPathAndDistance(subPathCandidates, area.getAllPointsBeginningWith(areaLine.p1(), true));
-            calculateSubPathAndDistance(subPathCandidates, area.getAllPointsBeginningWith(areaLine.p2(), true));
-
-            result.addAll(subPathCandidates.get(subPathCandidates.keySet().stream().min(Double::compare).get()));
+        //Direct way from start to end without crossing any area lines
+        if (Stream.of(areaLines).noneMatch(l -> l.doIntersect(new Line(startPoint, endPoint)))) {
+            result.add(endPoint);
+            return result.toArray(Point[]::new);
         }
-        //Add endpoint
-        result.add(endPoint);
 
-        List<Point> simplifiedPath = simplifyPath(result);
-
-        return simplifiedPath.toArray(Point[]::new);
-    }
-
-    /**
-     * Simplify the given path regarding the area
-     *
-     * @param totalPath
-     * @return a simplified path from start to end
-     */
-    private List<Point> simplifyPath(List<Point> totalPath) {
-        // Begin from startpoint, find the last point in path which the current point
-        // can see directly without crossing an edge
-        List<Point> simplifiedPath = new ArrayList<>();
-        System.out.println("Begin simplifying path with size " + totalPath);
-        for (int i = 0; i < totalPath.size(); i++) {
-            if (i < 0) {
-                break;
-            }
-            Point currentPoint = totalPath.get(i);
-            System.out.println("Current start point with index #" + i + ", " + currentPoint);
-            simplifiedPath.add(currentPoint);
-            int nextPointIndex = -1;
-            for (int j = i + 1; j < totalPath.size(); j++) {
-                Point nextPoint = totalPath.get(j);
-                Line line = new Line(currentPoint, nextPoint);
-                //Check if line crosses no area edges
-                boolean crossAreaEdge = Stream.of(areaLines).noneMatch(l -> l.doIntersect(line));
-                //Check if center point of line is in area
-                //Maybe there is a better way but for now this works
-                boolean centerIsInArea = isPointInArea(line.getCenterPoint());
-                if (crossAreaEdge && centerIsInArea) {
-                    //line between currentPoint and nextPoint crosses no edge and center is in area
-                    System.out.println("Next point with index #" + j + " crosses no edge: " + nextPoint);
-                    nextPointIndex = j;
-                } else {
-                    //edge was crossed
-                    System.out.println("Next point with index #" + j + " crosses edge: " + nextPoint + ".");
-                }
-            }
-            i = nextPointIndex - 1;
-        }
-        return simplifiedPath;
-    }
-
-    private Line getLineWithShortestPathFromStartpoint(List<Line> crossedAreaLines) {
-        double minDistance = Double.MAX_VALUE;
-        Line areaLineWithShortestPath = null;
-        for (Line areaLine : crossedAreaLines) {
-            double distance = new Line(startPoint, areaLine.getNearestPointToLine(startPoint)).length();
-            if (distance < minDistance) {
-                minDistance = distance;
-                areaLineWithShortestPath = areaLine;
-            }
-        }
-        return areaLineWithShortestPath;
+        //We have to use the nodemesh
+        Node start = new Node(startPoint);
+        Node end = new Node(endPoint);
+        calculateNodeMesh(start, end);
+        return AStarUtil.aStar(start, end).stream().map(Node::getPoint).toArray(Point[]::new);
     }
 
     /**
@@ -227,26 +161,51 @@ public class PathFinder {
     }
 
     /**
-     * Calculates the distance from areaEdgePoints array to the endpoint and
-     * puts the result in the map
-     *
-     * @param subPathCandidates
-     * @param startPoint
+     * Calculates the node mesh of concave points of the area. Concave points
+     * are detected by its triangle area: if the value is negative, the point is
+     * concave
      */
-    private void calculateSubPathAndDistance(Map<Double, List<Point>> subPathCandidates, Point[] areaEdgePoints) {
-        List<Point> subPath = new ArrayList<>();
-        double distance = 0;
-        //Go along points till direct path without crossings 
-        for (Point p : areaEdgePoints) {
-            subPath.add(p);
-            Line line = new Line(p, endPoint);
-            distance += line.length();
-            if (Stream.of(areaLines).noneMatch(l -> l.doIntersect(line))) {
-                //No intersection, we found a path to destination!
-                break;
+    private void calculateNodeMesh(Node start, Node end) {
+        //Detect concave vertices by checking its triangle area.
+        //If it is negativ, it is concave
+        List<Point> concavePoints = new ArrayList<>();
+        for (int i = 0; i < area.points().length; i++) {
+            Point p1, p2, p3;
+            p1 = area.points()[i];
+            if (i == area.points().length - 1) {
+                p2 = area.points()[0];
+                p3 = area.points()[i - 1];
+            } else if (i == 0) {
+                p2 = area.points()[i + 1];
+                p3 = area.points()[area.points().length - 1];
             } else {
+                p2 = area.points()[i + 1];
+                p3 = area.points()[i - 1];
+            }
+            if (new Triangle(p1, p2, p3).calculateArea() < 0) {
+                concavePoints.add(p1);
             }
         }
-        subPathCandidates.put(distance, subPath);
+        //TODO Obstacles (= polygon holes) : include the convex vertices of them.
+        
+        List<Node> nodes = new ArrayList<>(concavePoints.stream().map(Node::new).toList());
+        //Add start and endpoint
+        nodes.add(start);
+        nodes.add(end);
+        for (Node n : nodes) {
+            for (Node otherNode : nodes) {
+                if (n == otherNode) {
+                    continue;
+                }
+                Line tempLine = new Line(n.getPoint(), otherNode.getPoint());
+                //Check if line crosses area edges
+                boolean crossAreaEdge = Stream.of(areaLines).anyMatch(l -> l.doIntersect(tempLine));
+                if (!crossAreaEdge) {
+                    //No intersection
+                    n.addNeighbour(otherNode, tempLine.length());
+                    otherNode.addNeighbour(n, tempLine.length());
+                }
+            }
+        }
     }
 }

@@ -10,7 +10,7 @@ public record Triangle(Point p1, Point p2, Point p3) {
      * Calculates the area of this triangle
      * @return double
      */
-    private double calculateArea() {
+    public double calculateArea() {
         return 0.5d * ((p1.x() - p3.x()) * (p2.y() - p3.y()) - (p2.x() - p3.x()) * (p1.y() - p3.y()));
     }
 
