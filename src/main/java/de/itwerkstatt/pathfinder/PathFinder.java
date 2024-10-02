@@ -26,6 +26,7 @@ public class PathFinder {
 
     private Point startPoint;
     private Point endPoint;
+    private List<Node> nodes;
 
     /**
      * Takes the given area and calculates triangles of all points of the
@@ -151,6 +152,10 @@ public class PathFinder {
         return endPoint;
     }
 
+    public List<Node> getNodes() {
+        return nodes;
+    }
+    
     /**
      * Sets the array of triangles that should cover in sum the complete area.
      *
@@ -188,7 +193,7 @@ public class PathFinder {
         }
         //TODO Obstacles (= polygon holes) : include the convex vertices of them.
         
-        List<Node> nodes = new ArrayList<>(concavePoints.stream().map(Node::new).toList());
+        nodes = new ArrayList<>(concavePoints.stream().map(Node::new).toList());
         //Add start and endpoint
         nodes.add(start);
         nodes.add(end);

@@ -60,6 +60,7 @@ public class TestGUI {
                     p.setStartAndEndpoint(points[0], points[1]);
                     Point[] path = p.findPath();
                     canvas.setPath(path);
+                    canvas.setNodes(p.getNodes());
                     populatePathPointList(path);
                 } else {
                     canvas.setPath(null);
@@ -75,6 +76,7 @@ public class TestGUI {
         try {
             Point[] path = p.findPath();
             canvas.setPath(path);
+            canvas.setNodes(p.getNodes());
             populatePathPointList(path);
         } catch (IllegalArgumentException ignore) {
             //No start and endpoint available yet

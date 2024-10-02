@@ -1,6 +1,7 @@
 package de.itwerkstatt.pathfinder.util;
 
 import de.itwerkstatt.pathfinder.entities.Area;
+import de.itwerkstatt.pathfinder.entities.Node;
 import de.itwerkstatt.pathfinder.entities.Point;
 import de.itwerkstatt.pathfinder.entities.Triangle;
 import java.awt.BasicStroke;
@@ -9,6 +10,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 import javax.swing.JCheckBox;
@@ -26,6 +29,7 @@ public class CanvasPanel extends JPanel implements ItemListener {
     private Point startPoint;
     private Point endPoint;
     private Point[] path;
+    private List<Node> nodes;
 
     private final int POINT_SIZE = 8;
 
@@ -38,7 +42,8 @@ public class CanvasPanel extends JPanel implements ItemListener {
         TRIANGLE_POINTS(false),
         PATH(true),
         PATH_POINTS(false),
-        START_END_POINTS(false);
+        START_END_POINTS(false),
+        NODE_MESH(false);
 
         private Filter(boolean isVisible) {
             visible = isVisible;
@@ -80,6 +85,10 @@ public class CanvasPanel extends JPanel implements ItemListener {
     void setHighlightedPathPointIndex(int newIndex) {
         highlightedPathPoint = newIndex;
         SwingUtilities.invokeLater(() -> repaint());
+    }
+
+    void setNodes(List<Node> nodes) {
+        this.nodes = nodes;
     }
     //</editor-fold>
 
@@ -134,6 +143,23 @@ public class CanvasPanel extends JPanel implements ItemListener {
             }
             if (highlightedPathPoint > -1) {
                 drawPoint(g2d, "", (int) path[highlightedPathPoint].x(), (int) path[highlightedPathPoint].y());
+            }
+        }
+
+        //Nodes
+        if (nodes != null && Filter.NODE_MESH.isVisible()) {
+            g2d.setColor(Color.ORANGE);
+            List<Point> alreadyPainted = new ArrayList<>();
+            for (Node node : nodes) {
+                if (!alreadyPainted.contains(node.getPoint())) {
+                    alreadyPainted.add(node.getPoint());
+                    for (Node.NeighbourNode directNeighbour : node.getDirectNeighbours()) {
+                        if (!alreadyPainted.contains(directNeighbour.node().getPoint())){
+                            drawLine(g2d, new Point[]{node.getPoint(), directNeighbour.node().getPoint()});
+                        }
+                    }
+            
+                }
             }
         }
     }
