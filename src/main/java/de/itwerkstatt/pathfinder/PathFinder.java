@@ -200,7 +200,9 @@ public class PathFinder {
                 Line tempLine = new Line(n.getPoint(), otherNode.getPoint());
                 //Check if line crosses area edges
                 boolean crossAreaEdge = Stream.of(areaLines).anyMatch(l -> l.doIntersect(tempLine));
-                if (!crossAreaEdge) {
+                //Check if line is inside area
+                boolean lineIsInArea = isPointInArea(tempLine.getCenterPoint());
+                if (!crossAreaEdge && lineIsInArea) {
                     //No intersection
                     n.addNeighbour(otherNode, tempLine.length());
                     otherNode.addNeighbour(n, tempLine.length());

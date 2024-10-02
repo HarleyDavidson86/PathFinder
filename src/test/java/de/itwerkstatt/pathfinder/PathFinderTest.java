@@ -236,6 +236,45 @@ public class PathFinderTest {
                 new Triangle(new Point(600, 100), new Point(500, 500), new Point(500, 200))
             }, new Point(150, 150), new Point(550, 450), new Point[]{
                 new Point(150, 150), new Point(200, 400), new Point(300, 400), new Point(400, 200), new Point(500, 200), new Point(550, 450)
+            }),
+            // Case 5
+            // (100,100)    (250,100)          (500,100)
+            //     o------o     o------------------o
+            //     |      |     |     (400,200)    |
+            //     |      |     |    o----o        |
+            //     |   s  |     | e  |    |        |
+            //     |      |     o----o    |        |
+            //     |      |               |        |
+            //     |      o---------------o        |
+            //     |  (200,400)       (400,400)    |
+            //     o-------------------------------o
+            // (100,500)                       (500,500)
+            new FindPathTestcase(new Area(
+            new Point(100, 100),
+            new Point(200, 100),
+            new Point(200, 400),
+            new Point(400, 400),
+            new Point(400, 200),
+            new Point(350, 200),
+            new Point(350, 350),
+            new Point(250, 350),
+            new Point(250, 100),
+            new Point(500, 100),
+            new Point(500, 500),
+            new Point(100, 500)
+            ), new Triangle[]{
+                new Triangle(new Point(100, 100), new Point(200, 100), new Point(200, 400)),
+                new Triangle(new Point(100, 100), new Point(200, 400), new Point(100, 500)),
+                new Triangle(new Point(100, 500), new Point(200, 400), new Point(400, 400)),
+                new Triangle(new Point(100, 500), new Point(400, 400), new Point(500, 500)),
+                new Triangle(new Point(500, 500), new Point(400, 400), new Point(400, 200)),
+                new Triangle(new Point(500, 500), new Point(400, 200), new Point(500, 100)),
+                new Triangle(new Point(500, 100), new Point(400, 200), new Point(350, 200)),
+                new Triangle(new Point(500, 100), new Point(350, 200), new Point(250, 100)),
+                new Triangle(new Point(250, 100), new Point(350, 200), new Point(350, 350)),
+                new Triangle(new Point(250, 100), new Point(350, 350), new Point(250, 350))
+            }, new Point(150, 150), new Point(300, 300), new Point[]{
+                new Point(150, 150), new Point(200, 400), new Point(400, 400), new Point(400, 200), new Point(350, 200), new Point(300, 300)
             })
         };
 
