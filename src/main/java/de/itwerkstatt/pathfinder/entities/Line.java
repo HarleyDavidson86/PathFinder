@@ -1,5 +1,7 @@
 package de.itwerkstatt.pathfinder.entities;
 
+import java.util.Optional;
+
 /**
  * A line segment defined by two points
  *
@@ -8,18 +10,105 @@ package de.itwerkstatt.pathfinder.entities;
 public record Line(Point p1, Point p2) {
 
     /**
+     * Returns the y value for the given x. If this point is not between this
+     * segment empty will be returned.
+     *
+     * @param x
+     * @return the corresponding y value or empty if outside of segment
+     */
+    private Optional<Double> getYforGivenX(double x) {
+        if (isHorizontal()) {
+            return (x >= getMinX() && x <= getMaxX()) ? Optional.of(p1.y()) : Optional.empty();
+        } else if (isVertical()) {
+            return (x == p1.x()) ? Optional.of(p1.y()) : Optional.empty();
+        } else {
+            // y = m*x + c
+            double y = calculateGradient() * x + calculateOffset();
+            return (y >= getMinY() && y <= getMaxY()) ? Optional.of(y) : Optional.empty();
+        }
+    }
+    
+    /**
+     * Returns the x value for the given y. If this point is not between this
+     * segment empty will be returned.
+     *
+     * @param y
+     * @return the corresponding x value or empty if outside of segment
+     */
+    private Optional<Double> getXforGivenY(double y) {
+        if (isHorizontal()) {
+            return (y == p1.y()) ? Optional.of(p1.x()) : Optional.empty();
+        } else if (isVertical()) {
+            return (y >= getMinY() && y <= getMaxY()) ? Optional.of(p1.x()) : Optional.empty();
+        } else {
+            // y = m*x + c
+            // x = (y-c)/m
+            double x = (y - calculateOffset())/calculateGradient();
+            return (x >= getMinX() && x <= getMaxX()) ? Optional.of(x) : Optional.empty();
+        }
+    }
+
+    /**
+     * Returns true if the line is horizontal
+     * @return 
+     */
+    private boolean isHorizontal() {
+        return p1.y() == p2.y();
+    }
+
+    /**
+     * Returns true if the line is vertical
+     * @return 
+     */
+    private boolean isVertical() {
+        return p1.x() == p2.x();
+    }
+
+    /**
+     * Calculates the gradient of the line
+     *
+     * @return the gradient
+     * @throws ArithmeticException when line is vertical
+     */
+    private double calculateGradient() {
+        return (p2.y() - p1.y()) / (p2.x() - p1.x());
+    }
+
+    /**
+     * Calculates the offset of the line 
+     * @return 
+     * @throws ArithmeticException when line is vertical
+     */
+    private double calculateOffset() {
+        return p1.y() - (calculateGradient() * p1.x());
+    }
+
+    /**
      * Checks if the given point p is between the linesegment by checking the
      * coordinate-values
      *
      * @param p
      * @return true, if p is between p1 and p2
      */
-    boolean isPointBetweenSegmentpoints(Point p) {
-        double maxY = p1.y() > p2.y() ? p1.y() : p2.y();
-        double minY = p1.y() < p2.y() ? p1.y() : p2.y();
-        double maxX = p1.x() > p2.x() ? p1.x() : p2.x();
-        double minX = p1.x() < p2.x() ? p1.x() : p2.x();
-        return p.y() >= minY && p.y() <= maxY && p.x() >= minX && p.x() <= maxX;
+    private boolean isPointBetweenSegmentpoints(Point p) {
+        return p.y() >= getMinY() && p.y() <= getMaxY()
+                && p.x() >= getMinX() && p.x() <= getMaxX();
+    }
+
+    private double getMaxX() {
+        return p1.x() > p2.x() ? p1.x() : p2.x();
+    }
+
+    private double getMinX() {
+        return p1.x() < p2.x() ? p1.x() : p2.x();
+    }
+
+    private double getMaxY() {
+        return p1.y() > p2.y() ? p1.y() : p2.y();
+    }
+
+    private double getMinY() {
+        return p1.y() < p2.y() ? p1.y() : p2.y();
     }
 
     /**
@@ -31,18 +120,16 @@ public record Line(Point p1, Point p2) {
      */
     public Point getNearestPointToLine(Point p) {
         Point intersectionPoint;
-        boolean isHorizontal = p1.y() == p2.y();
-        boolean isVertical = p1.x() == p2.x();
-        if (isHorizontal) {
+        if (isHorizontal()) {
             intersectionPoint = new Point(p.x(), p1.y());
-        } else if (isVertical) {
+        } else if (isVertical()) {
             intersectionPoint = new Point(p1.x(), p.y());
         } else {
             // Calculate linear equation y = mx + c
             // Gradient 
-            double m = (p2.y() - p1.y()) / (p2.x() - p1.x());
+            double m = calculateGradient();
             // Offset c = y - mx
-            double c = p1.y() - (m * p1.x());
+            double c = calculateOffset();
             //Normal through point P
             //Gradient of normal
             double m_normal = -1.0d / m;
@@ -67,51 +154,63 @@ public record Line(Point p1, Point p2) {
     }
 
     /**
-     * Calculates the orientation of the three points line.p1, line.p2, p
-     *
-     * @param p
-     * @return 0 = collinear, 1 = clock wise, 2 = counter clock wise
-     */
-    int orientation(Point p) {
-        var result = (p2.y() - p1.y()) * (p.x() - p2.x()) - (p2.x() - p1.x()) * (p.y() - p2.y());
-        if (result == 0) {
-            return 0;
-        }
-        return (result > 0) ? 1 : 2;
-    }
-
-    /**
-     * Checks if the line intersects with the other
+     * Checks if the line segments intersect
      *
      * @param other
-     * @return true if line intersects
+     * @return
      */
     public boolean doIntersect(Line other) {
-        int o1 = orientation(other.p1);
-        int o2 = orientation(other.p2);
-        int o3 = other.orientation(p1);
-        int o4 = other.orientation(p2);
+        //Case 1 - line is horizontal
+        if (isHorizontal()) {
+            //Other line is horizonal
+            if (other.isHorizontal()) {
+                return false;
+            }
+            //Other line is vertical
+            if (other.isVertical()) {
+                return other.p1.x() >= getMinX() && other.p1.x() <= getMaxX()
+                        && p1.y() >= other.getMinY() && p1.y() <= other.getMaxY()
+                        && !touch(other);
+            }
+            //Other line has specific gradient
+            Optional<Double> optXVal = other.getXforGivenY(p1.y());
+            return optXVal.isPresent();
+        }
 
-        //Lines have different orientations
-        if (o1 != o2 && o3 != o4) {
-            //Return only true if they do not share a point.
-            return !(p1.equals(other.p1) || p2.equals(other.p1) || p1.equals(other.p2) || p2.equals(other.p2));
+        //Case 2 - line is vertical
+        if (isVertical()) {
+            //Other line is horizonal
+            if (other.isHorizontal()) {
+                return other.p1.y() >= getMinY() && other.p1.y() <= getMaxY()
+                        && p1.x() >= other.getMinX() && p1.x() <= other.getMaxX()
+                        && !touch(other);
+            }
+            //Other line is vertical
+            if (other.isVertical()) {
+                return false;
+            }
+            //Other line has specific gradient
+            Optional<Double> optYVal = other.getYforGivenX(p1.x());
+            return optYVal.isPresent();
         }
-        //Line is on other line
-        if (o1 == 0 && o2 == 0 && o3 == 0 && o4 == 0) {
-            return false;
+        //Line has a specific gradient
+        //Other line is horizonal or vertical
+        if (other.isHorizontal() || other.isVertical()) {
+            return other.doIntersect(this);
+        }
+        //Both lines have a specific gradient, calculacte intersection point
+        //Same gradient, so the lines are parallel
+        if (calculateGradient() == other.calculateGradient()) {
+            return false; 
         }
 
-        if (o1 == 0 && isPointBetweenSegmentpoints(other.p1)) {
-            return true;
-        }
-        if (o2 == 0 && isPointBetweenSegmentpoints(other.p2)) {
-            return true;
-        }
-        if (o3 == 0 && other.isPointBetweenSegmentpoints(p1)) {
-            return true;
-        }
-        return o4 == 0 && other.isPointBetweenSegmentpoints(p2);
+        // x-Koordinate des Schnittpunkts berechnen
+        double x = (other.calculateOffset() - calculateOffset()) / 
+                (calculateGradient() - other.calculateGradient());
+
+        // y-Koordinate des Schnittpunkts berechnen
+        double y = calculateGradient() * x + calculateOffset();
+        return isPointBetweenSegmentpoints(new Point(x,y));
     }
 
     /**
@@ -130,5 +229,25 @@ public record Line(Point p1, Point p2) {
      */
     public Point getCenterPoint() {
         return new Point((p1.x() + p2.x()) / 2, (p1.y() + p2.y()) / 2);
+    }
+
+    /**
+     * Checks if at least one point of the one line 
+     * lay on the line segment of the other one
+     * @param other
+     * @return 
+     */
+    public boolean touch(Line other) {
+        if (isHorizontal()) {
+            return other.p1.y() == p1.y() || other.p2.y() == p1.y();
+        }
+        if (isVertical()) {
+            return other.p1.x() == p1.x() || other.p2.x() == p1.x();
+        }
+        //Line has specific gradient
+        // y = mx + c
+        boolean p1_onSegment = other.p1.y() == calculateGradient() * other.p1.x() + calculateOffset();
+        boolean p2_onSegment = other.p2.y() == calculateGradient() * other.p2.x() + calculateOffset();
+        return p1_onSegment || p2_onSegment;
     }
 }

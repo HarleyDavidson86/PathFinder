@@ -11,17 +11,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class LineTest {
 
-    @Test
-    public void testIsValBetweenSegment() {
-        Line l = new Line(new Point(0, 0), new Point(10, 0));
-        assertTrue(l.isPointBetweenSegmentpoints(new Point(0, 0)));
-        assertTrue(l.isPointBetweenSegmentpoints(new Point(5, 0)));
-        assertTrue(l.isPointBetweenSegmentpoints(new Point(10, 0)));
-        assertFalse(l.isPointBetweenSegmentpoints(new Point(0, 1)));
-        assertFalse(l.isPointBetweenSegmentpoints(new Point(5, 1)));
-        assertFalse(l.isPointBetweenSegmentpoints(new Point(10, 1)));
-    }
-
     record NearestPointToLineTestcase(Line l, Point p, Point expectedResult) {
 
     }
@@ -182,94 +171,152 @@ public class LineTest {
         }
     }
 
-    record OrientationTestcase(Line l, Point p, int expectedOrientation) {
-
-    }
-
-    @Test
-    public void testOrientation() {
-        Line l = new Line(new Point(1, 1), new Point(10, 1));
-        OrientationTestcase[] testcases = new OrientationTestcase[]{
-            //Case 1
-            //(1/1)     X(5/5)             (10/1)
-            // o-----------------------------o
-            new OrientationTestcase(l, new Point(5, 5), 2),
-            //Case 2
-            //(1/1)                        (10/1)
-            // o-----------------------------o
-            //          X(5/-5)
-            new OrientationTestcase(l, new Point(5, -5), 1),
-            //Case 3
-            //(1/1)                        (10/1)
-            // o--------X(5/1)---------------o
-            new OrientationTestcase(l, new Point(5, 1), 0)
-        };
-
-        for (int caseNumber = 0; caseNumber < testcases.length; caseNumber++) {
-            System.out.println("Test case #" + (caseNumber + 1));
-            OrientationTestcase testcase = testcases[caseNumber];
-            assertEquals(testcase.expectedOrientation, testcase.l.orientation(testcase.p));
-        }
-    }
-
-    record IntersectTestcase(Line line1, Line line2, boolean expectedResult) {
+    record IntersectTestcase(String description, Line line1, Line line2, boolean expectedResult) {
 
     }
 
     @Test
     public void testDoIntersect() {
-        Line l = new Line(new Point(1, 1), new Point(10, 1));
-
         IntersectTestcase[] testcases = new IntersectTestcase[]{
-            //Case 1
-            //(1/1)                        (10/1)
-            // o-----------------------------o
-            // X-----------------------------X
-            //(1/0)                        (10/0)
-            new IntersectTestcase(l, new Line(new Point(1, 0), new Point(10, 0)), false),
+            // Case 1
+            //  o-----------o
+            //  o-----------o
+            new IntersectTestcase(
+            "Both lines horizonal, always false",
+            new Line(new Point(1, 1), new Point(10, 1)),
+            new Line(new Point(1, 5), new Point(10, 5)),
+            false
+            ),
             //Case 2
-            //                  X (8/10)
-            //                 /
-            //                /
-            //(1/1)          X (6/5)       (10/1)
-            // o-----------------------------o
-            new IntersectTestcase(l, new Line(new Point(6, 5), new Point(8, 10)), false),
+            //        o
+            //        |
+            //  o-----+-----o
+            //        |
+            //        o
+            new IntersectTestcase(
+            "Line is horizonal, other is vertical, intersecting",
+            new Line(new Point(1, 1), new Point(10, 1)),
+            new Line(new Point(5, -3), new Point(5, 5)),
+            true
+            ),
             //Case 3
-            //                X (6/5)
-            //(1/1)          /             (10/1)
-            // o-----------------------------o
-            //             /
-            //            X (4/-1)
-            new IntersectTestcase(l, new Line(new Point(4, -1), new Point(6, 5)), true),
+            //        o
+            //        |
+            //        |
+            //        o
+            //
+            //  o-----------o
+            new IntersectTestcase(
+            "Line is horizonal, other is vertical, not intersecting",
+            new Line(new Point(1, 1), new Point(10, 1)),
+            new Line(new Point(5, -10), new Point(5, -3)),
+            false
+            ),
             //Case 4
-            //(1/1)                        (10/1)
-            // o---------X------X------------o
-            //         (6/1)  (4/1)
-            new IntersectTestcase(l, new Line(new Point(4, 1), new Point(6, 1)), false),
+            //           o
+            //          /
+            //         /
+            //        o
+            //
+            //  o-----------o
+            new IntersectTestcase(
+            "Line is horizonal, other has positive gradient, not intersecting",
+            new Line(new Point(1, 1), new Point(10, 1)),
+            new Line(new Point(5, -10), new Point(10, -5)),
+            false
+            ),
             //Case 5
-            //(1/1)                        (10/1)
-            // o---------X-------------------o--------X
-            //         (6/1)                        (14/1)
-            new IntersectTestcase(l, new Line(new Point(6, 1), new Point(14, 1)), false),
+            //           o
+            //          /
+            //         /
+            //  o-----------o
+            //       /
+            //      o
+            new IntersectTestcase(
+            "Line is horizonal, other has positive gradient, intersecting",
+            new Line(new Point(1, 1), new Point(10, 1)),
+            new Line(new Point(5, -10), new Point(10, 5)),
+            true
+            ),
             //Case 6
-            //(1/1)                        (10/1)
-            // o-----------------------------o--------X
-            //                            (10/1)   (14/1)
-            new IntersectTestcase(l, new Line(new Point(10, 1), new Point(14, 1)), false),
+            // o o
+            // | |
+            // | |
+            // | |
+            // o o
+            new IntersectTestcase(
+            "Both lines vertical, always false",
+            new Line(new Point(1, 1), new Point(1, 10)),
+            new Line(new Point(3, 3), new Point(3, 10)),
+            false
+            ),
             //Case 7
-            //(1/1)                        (10/1)
-            // o-----------------------------x
-            //                         (10/1) \
-            //                                 \
-            //                                  o(14/5)
-            new IntersectTestcase(l, new Line(new Point(10, 1), new Point(14, 5)), false)
+            // o     o
+            // |    /
+            // |   /
+            // |  /
+            // o o
+            new IntersectTestcase(
+            "Line is vertical, other has positive gradient, not intersecting",
+            new Line(new Point(1, 1), new Point(1, 10)),
+            new Line(new Point(3, 10), new Point(10, 1)),
+            false
+            ),
+            //Case 8
+            //   o o
+            //   |/
+            //   |
+            //  /|
+            // o o
+            new IntersectTestcase(
+            "Line is vertical, other has positive gradient, intersecting",
+            new Line(new Point(1, 1), new Point(1, 10)),
+            new Line(new Point(-4, 10), new Point(10, 1)),
+            true
+            ),
+            //Case 9
+            //     o o
+            //    / /
+            //   / /
+            //  / /
+            // o o
+            new IntersectTestcase(
+            "Both lines have positive gradient and are parallel",
+            new Line(new Point(1, 1), new Point(5, 10)),
+            new Line(new Point(2, 1), new Point(6, 10)),
+            false
+            ),
+            //Case 10
+            //  o  o  
+            //   \/  
+            //   /\ 
+            //  /  \
+            // o    o
+            new IntersectTestcase(
+            "Both lines has gradients",
+            new Line(new Point(1, 1), new Point(5, 10)),
+            new Line(new Point(2, 10), new Point(6, 1)),
+            true
+            ),
+            //Case 11
+            //        o
+            //        |
+            //  o-----o
+            new IntersectTestcase(
+            "Line is horizonal, other is vertical, only touching",
+            new Line(new Point(1, 1), new Point(10, 1)),
+            new Line(new Point(10, 1), new Point(10, 5)),
+            false
+            )
         };
 
         for (int caseNumber = 0; caseNumber < testcases.length; caseNumber++) {
-            System.out.println("Test case #" + (caseNumber + 1));
             IntersectTestcase testcase = testcases[caseNumber];
-            assertEquals(testcase.expectedResult, testcase.line1.doIntersect(testcase.line2));
-            assertEquals(testcase.expectedResult, testcase.line2.doIntersect(testcase.line1));
+            String caseName = "Test case #" + (caseNumber + 1) + ": " + testcase.description;
+            System.out.println(caseName);
+            assertEquals(testcase.expectedResult, testcase.line1.doIntersect(testcase.line2), "Error in " + caseName);
+            System.out.println(caseName + " (inverted)");
+            assertEquals(testcase.expectedResult, testcase.line2.doIntersect(testcase.line1), "Error in " + caseName + " (inverted)");
         }
     }
 
