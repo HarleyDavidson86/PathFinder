@@ -307,6 +307,18 @@ public class LineTest {
             new Line(new Point(1, 1), new Point(10, 1)),
             new Line(new Point(10, 1), new Point(10, 5)),
             false
+            ),
+            //Case 12
+            //     o  
+            //    / \  
+            //   /   \ 
+            //  /     \
+            // o       o
+            new IntersectTestcase(
+            "Both lines has gradients, only touching",
+            new Line(new Point(1, 1), new Point(5, 10)),
+            new Line(new Point(5, 10), new Point(3, 6)),
+            true
             )
         };
 
