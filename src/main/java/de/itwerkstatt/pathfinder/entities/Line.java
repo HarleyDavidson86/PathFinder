@@ -174,7 +174,12 @@ public record Line(Point p1, Point p2) {
             }
             //Other line has specific gradient
             Optional<Double> optXVal = other.getXforGivenY(p1.y());
-            return optXVal.isPresent();
+            if (optXVal.isPresent()) {
+                double intersectAtXVal = optXVal.get();
+                return p1.x() != intersectAtXVal && p2.x() != intersectAtXVal
+                        && intersectAtXVal >= getMinX() && intersectAtXVal <= getMaxX();
+            }
+            return false;
         }
 
         //Case 2 - line is vertical
@@ -191,7 +196,12 @@ public record Line(Point p1, Point p2) {
             }
             //Other line has specific gradient
             Optional<Double> optYVal = other.getYforGivenX(p1.x());
-            return optYVal.isPresent();
+            if (optYVal.isPresent()) {
+                double intersectAtYVal = optYVal.get();
+                return p1.y() != intersectAtYVal && p2.y() != intersectAtYVal
+                        && intersectAtYVal >= getMinY() && intersectAtYVal <= getMaxY();
+            }
+            return false;
         }
         //Line has a specific gradient
         //Other line is horizonal or vertical
@@ -210,7 +220,8 @@ public record Line(Point p1, Point p2) {
 
         // y-Koordinate des Schnittpunkts berechnen
         double y = calculateGradient() * x + calculateOffset();
-        return isPointBetweenSegmentpoints(new Point(x,y));
+        Point intersectionPoint = new Point(x,y);
+        return isPointBetweenSegmentpoints(intersectionPoint) && !intersectionPoint.equals(p1) && !intersectionPoint.equals(p2);
     }
 
     /**

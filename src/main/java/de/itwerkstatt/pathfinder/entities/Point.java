@@ -16,4 +16,8 @@ public record Point(double x, double y) {
     double distanceTo(Point p) {
         return Math.sqrt(Math.pow(x - p.x, 2) + Math.pow(y - p.y, 2));
     }
+    
+    public boolean equals(Point other) {
+        return x == other.x() && y == other.y();
+    }
 }

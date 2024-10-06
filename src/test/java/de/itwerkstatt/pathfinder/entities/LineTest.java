@@ -318,7 +318,30 @@ public class LineTest {
             "Both lines has gradients, only touching",
             new Line(new Point(1, 1), new Point(5, 10)),
             new Line(new Point(5, 10), new Point(3, 6)),
-            true
+            false
+            ),
+            //Case 13
+            //            o
+            //           /
+            //          /
+            // o-------o
+            new IntersectTestcase(
+            "One line is horizontal, other has gradients, only touching",
+            new Line(new Point(1, 1), new Point(5, 1)),
+            new Line(new Point(5, 1), new Point(7, 6)),
+            false
+            ),
+            //Case 14
+            // o   o
+            // |  /
+            // | /
+            // |/
+            // o
+            new IntersectTestcase(
+            "One line is vertical, other has gradients, only touching",
+            new Line(new Point(1, 1), new Point(1, 5)),
+            new Line(new Point(1, 5), new Point(4, 1)),
+            false
             )
         };
 
@@ -330,6 +353,16 @@ public class LineTest {
             System.out.println(caseName + " (inverted)");
             assertEquals(testcase.expectedResult, testcase.line2.doIntersect(testcase.line1), "Error in " + caseName + " (inverted)");
         }
+    }
+
+    @Test
+    public void tempTest() {
+//Checking Line[p1=Point[x=200.0, y=200.0], p2=Point[x=150.0, y=150.0]]
+//Intersecting with Area Line Line[p1=Point[x=400.0, y=200.0], p2=Point[x=500.0, y=200.0]]
+        Line l1 = new Line(new Point(200,200), new Point(150,150));
+        Line l2 = new Line(new Point(400,200), new Point(500,200));
+        System.out.println(l1.doIntersect(l2));
+        System.out.println(l2.doIntersect(l1));
     }
 
     record LengthTestcase(Point p1, Point p2, double expectedResult) {

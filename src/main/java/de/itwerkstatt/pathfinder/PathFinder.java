@@ -197,17 +197,25 @@ public class PathFinder {
         //Add start and endpoint
         nodes.add(start);
         nodes.add(end);
+        System.out.println("Calculating mesh");
         for (Node n : nodes) {
             for (Node otherNode : nodes) {
                 if (n == otherNode) {
                     continue;
                 }
                 Line tempLine = new Line(n.getPoint(), otherNode.getPoint());
+                System.out.println("Checking "+tempLine);
                 //Check if line crosses area edges
-                boolean crossAreaEdge = Stream.of(areaLines).anyMatch(l -> l.doIntersect(tempLine));
+                boolean crossAreaEdge = Stream.of(areaLines)
+                        .filter(l -> l.doIntersect(tempLine))
+                        .peek(l -> System.out.println("Intersecting with Area Line "+l))
+                        .count() > 0;
                 //Check if line is inside area
+                //TODO: This is not accurate enough. Checking multiple points of line?
                 boolean lineIsInArea = isPointInArea(tempLine.getCenterPoint());
+                System.out.println("Line is in area: "+lineIsInArea);
                 if (!crossAreaEdge && lineIsInArea) {
+                    System.out.println("Adding as neightbour.");
                     //No intersection
                     n.addNeighbour(otherNode, tempLine.length());
                     otherNode.addNeighbour(n, tempLine.length());
