@@ -2,6 +2,7 @@ package de.itwerkstatt.pathfinder.entities;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -359,8 +360,8 @@ public class LineTest {
     public void tempTest() {
 //Checking Line[p1=Point[x=200.0, y=200.0], p2=Point[x=150.0, y=150.0]]
 //Intersecting with Area Line Line[p1=Point[x=400.0, y=200.0], p2=Point[x=500.0, y=200.0]]
-        Line l1 = new Line(new Point(200,200), new Point(150,150));
-        Line l2 = new Line(new Point(400,200), new Point(500,200));
+        Line l1 = new Line(new Point(200, 200), new Point(150, 150));
+        Line l2 = new Line(new Point(400, 200), new Point(500, 200));
         System.out.println(l1.doIntersect(l2));
         System.out.println(l2.doIntersect(l1));
     }
@@ -412,23 +413,34 @@ public class LineTest {
         return bd.doubleValue();
     }
 
-    record CenterTestcase(Point p1, Point p2, Point expectedResult) {
+    record SplitLineTestcase(Point p1, Point p2, int steps, Point[] expectedResult) {
 
     }
 
     @Test
-    public void testCenter() {
-        CenterTestcase[] testcases = new CenterTestcase[]{
-            new CenterTestcase(new Point(0, 0), new Point(10, 10), new Point(5, 5)),
-            new CenterTestcase(new Point(10, 10), new Point(5, 5), new Point(7.5, 7.5)),
-            new CenterTestcase(new Point(10, 10), new Point(10, 10), new Point(10, 10))
+    public void testSplitLineInPoints() {
+        SplitLineTestcase[] testcases = new SplitLineTestcase[]{
+            //Case 1: Horizontal line
+            new SplitLineTestcase(new Point(0, 0), new Point(11, 0), 10, new Point[]{
+                new Point(1, 0), new Point(2, 0), new Point(3, 0), new Point(4, 0),
+                new Point(5, 0), new Point(6, 0), new Point(7, 0), new Point(8, 0),
+                new Point(9, 0), new Point(10, 0)
+            }),
+            //Case 2: Vertical line
+            new SplitLineTestcase(new Point(0, 0), new Point(0, 11), 10, new Point[]{
+                new Point(0, 1), new Point(0, 2), new Point(0, 3), new Point(0, 4), 
+                new Point(0, 5), new Point(0, 6), new Point(0, 7), new Point(0, 8), 
+                new Point(0, 9), new Point(0, 10),}),
+            //Case 3: Gradient line
+            new SplitLineTestcase(new Point(0, 0), new Point(5, 11), 4, new Point[]{
+                new Point(1, 2.2), new Point(2.0, 4.4), new Point(3.0, 6.6000000000000005), new Point(4.0, 8.8)})
         };
 
         for (int caseNumber = 0; caseNumber < testcases.length; caseNumber++) {
             System.out.println("Test case #" + (caseNumber + 1));
-            CenterTestcase testcase = testcases[caseNumber];
-            assertEquals(testcase.expectedResult, new Line(testcase.p1, testcase.p2).getCenterPoint());
-            assertEquals(testcase.expectedResult, new Line(testcase.p2, testcase.p1).getCenterPoint());
+            SplitLineTestcase testcase = testcases[caseNumber];
+            assertEquals(Arrays.asList(testcase.expectedResult), Arrays.asList(new Line(testcase.p1, testcase.p2).splitLineInPoints(testcase.steps)));
+            assertEquals(Arrays.asList(testcase.expectedResult), Arrays.asList(new Line(testcase.p2, testcase.p1).splitLineInPoints(testcase.steps)));
         }
     }
 }

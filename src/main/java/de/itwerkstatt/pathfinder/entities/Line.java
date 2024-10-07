@@ -232,14 +232,31 @@ public record Line(Point p1, Point p2) {
     public double length() {
         return Math.sqrt(Math.pow(p2.x() - p1.x(), 2) + Math.pow(p2.y() - p1.y(), 2));
     }
-
+    
     /**
-     * Returns the center point of this line
-     *
-     * @return
+     * Splits the line in steps and return the cut points (exclusive start and end
+     * points of the line)
+     * @param steps how many points 
+     * @return array with points
      */
-    public Point getCenterPoint() {
-        return new Point((p1.x() + p2.x()) / 2, (p1.y() + p2.y()) / 2);
+    public Point[] splitLineInPoints(int steps) {
+        Point[] result = new Point[steps];
+        double step = (getMaxX()-getMinX()) / ((double) steps+1.0);
+        if (isVertical()) {
+            step = (getMaxY()-getMinY()) / ((double) steps+1.0);
+        }
+        for (int i = 1; i < steps+1; i++) {
+            double x,y;
+            if (isVertical()) {
+                y = getMinY()+step*i;
+                x = getXforGivenY(y).get();
+            } else {
+                x = getMinX()+step*i;
+                y = getYforGivenX(x).get();
+            }
+            result[i-1] = new Point(x,y);
+        }
+        return result;
     }
 
     /**
